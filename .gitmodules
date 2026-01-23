@@ -1,0 +1,3 @@
+[submodule "XQdrant"]
+	path = XQdrant
+	url = https://github.com/Moetez-Fradi/X-qdrant.git
