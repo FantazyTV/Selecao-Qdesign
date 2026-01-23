@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, use } from "react";
+import React, { useEffect, useState, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { v4 as uuidv4 } from "uuid";
@@ -48,11 +48,13 @@ import {
 import { cn, formatDate } from "@/lib/utils";
 import { useProjectStore, useAuthStore, useUIStore } from "@/lib/stores";
 import { projectsApi } from "@/lib/api";
+import { useSocket } from "@/lib/socket";
 import type {
   DataPoolItem,
   KnowledgeGraph,
   CoScientistStep,
   Checkpoint,
+  SocketEvent,
 } from "@/lib/types";
 import { DataPool } from "@/components/workspace/DataPool";
 import { KnowledgeGraphView } from "@/components/workspace/KnowledgeGraph";
@@ -324,7 +326,19 @@ export default function ProjectWorkspace({
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { user, logout } = useAuthStore();
+  const { user, logout, isInitialized, isLoading: authLoading } = useAuthStore();
+  const { 
+    joinProject, 
+    leaveProject, 
+    isConnected,
+    emitPoolAdd,
+    emitPoolRemove,
+    emitGraphNodeAdd,
+    emitGraphNodeUpdate,
+    emitGraphNodeRemove,
+    emitGraphEdgeAdd,
+    emitGraphEdgeRemove,
+  } = useSocket();
   const [mode, setMode] = useState<ProjectMode>("pool");
   const [showCheckpointDialog, setShowCheckpointDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -337,6 +351,30 @@ export default function ProjectWorkspace({
     queryKey: ["project", projectId],
     queryFn: () => fetchProject(projectId),
   });
+
+  // Join/leave project room for real-time updates
+  useEffect(() => {
+    if (isConnected && projectId) {
+      joinProject(projectId);
+      return () => {
+        leaveProject(projectId);
+      };
+    }
+  }, [isConnected, projectId, joinProject, leaveProject]);
+
+  // Refetch project when socket receives updates
+  useEffect(() => {
+    // Subscribe to project updates via query invalidation
+    const handleProjectUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+    };
+
+    // Listen for socket-driven invalidation
+    window.addEventListener(`project:${projectId}:update`, handleProjectUpdate);
+    return () => {
+      window.removeEventListener(`project:${projectId}:update`, handleProjectUpdate);
+    };
+  }, [projectId, queryClient]);
 
   // Update mutation
   const updateMutation = useMutation({
@@ -375,12 +413,12 @@ export default function ProjectWorkspace({
     },
   });
 
-  // Redirect if not authenticated
+  // Redirect if not authenticated - only after initialization
   useEffect(() => {
-    if (!user) {
+    if (isInitialized && !authLoading && !user) {
       router.push("/login");
     }
-  }, [user, router]);
+  }, [user, isInitialized, authLoading, router]);
 
   // Open viewer window
   const openViewer = (item: DataPoolItem) => {
@@ -431,6 +469,8 @@ export default function ProjectWorkspace({
     };
     const updatedPool = [...(project?.dataPool || []), newItem];
     updateMutation.mutate({ dataPool: updatedPool });
+    // Emit socket event for real-time sync
+    emitPoolAdd(projectId, newItem);
   };
 
   const handleRemovePoolItem = async (id: string) => {
@@ -438,6 +478,8 @@ export default function ProjectWorkspace({
       (item: DataPoolItem) => item._id !== id
     );
     updateMutation.mutate({ dataPool: updatedPool });
+    // Emit socket event for real-time sync
+    emitPoolRemove(projectId, id);
   };
 
   // Knowledge graph handlers
@@ -447,6 +489,8 @@ export default function ProjectWorkspace({
       nodes: [...(project?.knowledgeGraph?.nodes || []), node],
     };
     updateMutation.mutate({ knowledgeGraph: updatedGraph });
+    // Emit socket event for real-time sync
+    emitGraphNodeAdd(projectId, node);
   };
 
   const handleUpdateNode = (node: KnowledgeGraph["nodes"][0]) => {
@@ -456,6 +500,8 @@ export default function ProjectWorkspace({
     updateMutation.mutate({
       knowledgeGraph: { ...project?.knowledgeGraph, nodes: updatedNodes },
     });
+    // Emit socket event for real-time sync
+    emitGraphNodeUpdate(projectId, node);
   };
 
   const handleDeleteNode = (nodeId: string) => {
@@ -468,6 +514,8 @@ export default function ProjectWorkspace({
     updateMutation.mutate({
       knowledgeGraph: { nodes: updatedNodes, edges: updatedEdges },
     });
+    // Emit socket event for real-time sync
+    emitGraphNodeRemove(projectId, nodeId);
   };
 
   const handleAddEdge = (edge: KnowledgeGraph["edges"][0]) => {
@@ -476,6 +524,8 @@ export default function ProjectWorkspace({
       edges: [...(project?.knowledgeGraph?.edges || []), edge],
     };
     updateMutation.mutate({ knowledgeGraph: updatedGraph });
+    // Emit socket event for real-time sync
+    emitGraphEdgeAdd(projectId, edge);
   };
 
   const handleUpdateEdge = (edge: KnowledgeGraph["edges"][0]) => {
@@ -494,12 +544,16 @@ export default function ProjectWorkspace({
     updateMutation.mutate({
       knowledgeGraph: { ...project?.knowledgeGraph, edges: updatedEdges },
     });
+    // Emit socket event for real-time sync
+    emitGraphEdgeRemove(projectId, edgeId);
   };
 
   // Co-scientist handlers
   const handleAddStep = (step: CoScientistStep) => {
     const updatedSteps = [...(project?.coScientistSteps || []), step];
     updateMutation.mutate({ coScientistSteps: updatedSteps });
+    // Emit socket event for real-time sync
+    emit({ type: "coscientist:step:add", payload: step });
   };
 
   const handleUpdateStep = (step: CoScientistStep) => {
@@ -507,21 +561,23 @@ export default function ProjectWorkspace({
       s.id === step.id ? step : s
     );
     updateMutation.mutate({ coScientistSteps: updatedSteps });
+    // Emit socket event for real-time sync
+    emit({ type: "coscientist:step:update", payload: step });
   };
 
   const handleAddComment = (stepId: string, comment: string) => {
+    const newComment = { id: uuidv4(), text: comment, author: user?.name || "Unknown", createdAt: new Date().toISOString() };
     const updatedSteps = (project?.coScientistSteps || []).map((s: any) =>
       s.id === stepId
         ? {
             ...s,
-            comments: [
-              ...s.comments,
-              { id: uuidv4(), text: comment, createdAt: new Date() },
-            ],
+            comments: [...s.comments, newComment],
           }
         : s
     );
     updateMutation.mutate({ coScientistSteps: updatedSteps });
+    // Emit socket event for real-time sync
+    emit({ type: "coscientist:comment:add", payload: { stepId, comment: newComment } });
   };
 
   // Checkpoint handlers
@@ -752,28 +808,41 @@ export default function ProjectWorkspace({
           />
 
           {/* Floating Viewers */}
-          {viewers.map((viewer, index) => (
-            <FloatingWindow
-              key={viewer.id}
-              id={viewer.id}
-              title={viewer.title}
-              position={viewer.position}
-              size={viewer.size}
-              minimized={viewer.minimized}
-              onClose={() => closeViewer(viewer.id)}
-              onPositionChange={(pos) => updateViewerPosition(viewer.id, pos)}
-              onSizeChange={(size) => updateViewerSize(viewer.id, size)}
-              onMinimize={() => minimizeViewer(viewer.id)}
-              onRestore={() => restoreViewer(viewer.id)}
-            >
-              {viewer.type === "pdb" && <PDBViewer content={viewer.data} />}
-              {viewer.type === "pdf" && <PDFViewer fileUrl={viewer.data} />}
-              {viewer.type === "image" && <ImageViewer fileUrl={viewer.data} />}
-              {viewer.type === "sequence" && (
-                <SequenceViewer content={viewer.data} />
-              )}
-            </FloatingWindow>
-          ))}
+          {viewers.map((viewer, index) => {
+            // Determine if data is a URL or base64 content
+            const isUrl = viewer.data.startsWith('http://') || viewer.data.startsWith('https://') || viewer.data.startsWith('/');
+            
+            return (
+              <FloatingWindow
+                key={viewer.id}
+                id={viewer.id}
+                title={viewer.title}
+                position={viewer.position}
+                size={viewer.size}
+                minimized={viewer.minimized}
+                onClose={() => closeViewer(viewer.id)}
+                onPositionChange={(pos) => updateViewerPosition(viewer.id, pos)}
+                onSizeChange={(size) => updateViewerSize(viewer.id, size)}
+                onMinimize={() => minimizeViewer(viewer.id)}
+                onRestore={() => restoreViewer(viewer.id)}
+              >
+                {viewer.type === "pdb" && <PDBViewer content={viewer.data} />}
+                {viewer.type === "pdf" && (
+                  isUrl 
+                    ? <PDFViewer fileUrl={viewer.data} />
+                    : <PDFViewer content={viewer.data} />
+                )}
+                {viewer.type === "image" && (
+                  isUrl
+                    ? <ImageViewer fileUrl={viewer.data} />
+                    : <ImageViewer content={viewer.data} />
+                )}
+                {viewer.type === "sequence" && (
+                  <SequenceViewer content={viewer.data} />
+                )}
+              </FloatingWindow>
+            );
+          })}
         </main>
 
         {/* Dialogs */}

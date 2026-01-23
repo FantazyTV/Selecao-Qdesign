@@ -5,7 +5,7 @@
 import { Server } from "socket.io";
 import { createServer } from "http";
 
-const PORT = process.env.SOCKET_PORT || 3001;
+const PORT = process.env.SOCKET_PORT || 3002;
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -44,10 +44,21 @@ io.on("connection", (socket) => {
   let currentUserName: string | null = null;
   let cursorColor: string = generateCursorColor();
 
-  // Join a project room
+  // Join a project room - support both event name formats
+  socket.on("project:join", (data: { projectId: string }) => {
+    const { projectId } = data;
+    const userId = (socket.handshake.auth as any).userId || socket.id;
+    const userName = (socket.handshake.auth as any).userName || "Anonymous";
+
+    handleJoinProject(socket, projectId, userId, userName);
+  });
+
   socket.on("join-project", (data: { projectId: string; userId: string; userName: string }) => {
     const { projectId, userId, userName } = data;
+    handleJoinProject(socket, projectId, userId, userName);
+  });
 
+  function handleJoinProject(socket: any, projectId: string, userId: string, userName: string) {
     // Leave previous room if any
     if (currentProjectId) {
       socket.leave(currentProjectId);
@@ -82,29 +93,36 @@ io.on("connection", (socket) => {
     userCursors.set(socket.id, { x: 0, y: 0, color: cursorColor });
 
     // Notify others in the room
-    socket.to(projectId).emit("user-joined", {
-      userId,
-      userName,
+    socket.to(projectId).emit("user:joined", {
+      id: userId,
+      name: userName,
       color: cursorColor,
     });
 
     // Send current users to the new member
     const users = Array.from(projectRooms.get(projectId)!).map((u) => ({
-      userId: u.userId,
-      userName: u.userName,
+      id: u.userId,
+      name: u.userName,
       color: userCursors.get(u.socketId)?.color || cursorColor,
     }));
     socket.emit("room-users", users);
 
     console.log(`User ${userName} joined project ${projectId}`);
+  }
+
+  // Leave project room - support both formats
+  socket.on("project:leave", (data: { projectId: string }) => {
+    handleLeaveProject(socket);
   });
 
-  // Leave project room
   socket.on("leave-project", () => {
+    handleLeaveProject(socket);
+  });
+
+  function handleLeaveProject(socket: any) {
     if (currentProjectId) {
-      socket.to(currentProjectId).emit("user-left", {
+      socket.to(currentProjectId).emit("user:left", {
         userId: currentUserId,
-        userName: currentUserName,
       });
 
       socket.leave(currentProjectId);
@@ -120,44 +138,110 @@ io.on("connection", (socket) => {
       console.log(`User ${currentUserName} left project ${currentProjectId}`);
       currentProjectId = null;
     }
+  }
+
+  // Data Pool updates - support new event format
+  socket.on("pool:add", (data: { projectId?: string; item?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const item = data.item || data.payload;
+    if (projectId && item) {
+      socket.to(projectId).emit("pool:add", item);
+    }
   });
 
-  // Data Pool updates
+  socket.on("pool:remove", (data: { projectId?: string; itemId?: string; payload?: { itemId: string } }) => {
+    const projectId = data.projectId || currentProjectId;
+    const itemId = data.itemId || data.payload?.itemId;
+    if (projectId && itemId) {
+      socket.to(projectId).emit("pool:remove", { itemId });
+    }
+  });
+
+  socket.on("pool:update", (data: { projectId?: string; item?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const item = data.item || data.payload;
+    if (projectId && item) {
+      socket.to(projectId).emit("pool:update", item);
+    }
+  });
+
+  // Legacy event handlers for backwards compatibility
   socket.on("pool-item-added", (data: { projectId: string; item: any }) => {
-    socket.to(data.projectId).emit("pool-item-added", data.item);
+    socket.to(data.projectId).emit("pool:add", data.item);
   });
 
   socket.on("pool-item-removed", (data: { projectId: string; itemId: string }) => {
-    socket.to(data.projectId).emit("pool-item-removed", data.itemId);
+    socket.to(data.projectId).emit("pool:remove", { itemId: data.itemId });
   });
 
   socket.on("pool-item-updated", (data: { projectId: string; item: any }) => {
-    socket.to(data.projectId).emit("pool-item-updated", data.item);
+    socket.to(data.projectId).emit("pool:update", data.item);
   });
 
-  // Knowledge Graph updates
+  // Knowledge Graph updates - support new event format
+  socket.on("graph:node:add", (data: { projectId?: string; node?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const node = data.node || data.payload;
+    if (projectId && node) {
+      socket.to(projectId).emit("graph:node:add", node);
+    }
+  });
+
+  socket.on("graph:node:update", (data: { projectId?: string; node?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const node = data.node || data.payload;
+    if (projectId && node) {
+      socket.to(projectId).emit("graph:node:update", node);
+    }
+  });
+
+  socket.on("graph:node:remove", (data: { projectId?: string; nodeId?: string; payload?: { nodeId: string } }) => {
+    const projectId = data.projectId || currentProjectId;
+    const nodeId = data.nodeId || data.payload?.nodeId;
+    if (projectId && nodeId) {
+      socket.to(projectId).emit("graph:node:remove", { nodeId });
+    }
+  });
+
+  socket.on("graph:edge:add", (data: { projectId?: string; edge?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const edge = data.edge || data.payload;
+    if (projectId && edge) {
+      socket.to(projectId).emit("graph:edge:add", edge);
+    }
+  });
+
+  socket.on("graph:edge:remove", (data: { projectId?: string; edgeId?: string; payload?: { edgeId: string } }) => {
+    const projectId = data.projectId || currentProjectId;
+    const edgeId = data.edgeId || data.payload?.edgeId;
+    if (projectId && edgeId) {
+      socket.to(projectId).emit("graph:edge:remove", { edgeId });
+    }
+  });
+
+  // Legacy graph event handlers
   socket.on("node-added", (data: { projectId: string; node: any }) => {
-    socket.to(data.projectId).emit("node-added", data.node);
+    socket.to(data.projectId).emit("graph:node:add", data.node);
   });
 
   socket.on("node-updated", (data: { projectId: string; node: any }) => {
-    socket.to(data.projectId).emit("node-updated", data.node);
+    socket.to(data.projectId).emit("graph:node:update", data.node);
   });
 
   socket.on("node-deleted", (data: { projectId: string; nodeId: string }) => {
-    socket.to(data.projectId).emit("node-deleted", data.nodeId);
+    socket.to(data.projectId).emit("graph:node:remove", { nodeId: data.nodeId });
   });
 
   socket.on("edge-added", (data: { projectId: string; edge: any }) => {
-    socket.to(data.projectId).emit("edge-added", data.edge);
+    socket.to(data.projectId).emit("graph:edge:add", data.edge);
   });
 
   socket.on("edge-updated", (data: { projectId: string; edge: any }) => {
-    socket.to(data.projectId).emit("edge-updated", data.edge);
+    socket.to(data.projectId).emit("graph:edge:update", data.edge);
   });
 
   socket.on("edge-deleted", (data: { projectId: string; edgeId: string }) => {
-    socket.to(data.projectId).emit("edge-deleted", data.edgeId);
+    socket.to(data.projectId).emit("graph:edge:remove", { edgeId: data.edgeId });
   });
 
   // Node position updates (for graph dragging)
@@ -168,17 +252,43 @@ io.on("connection", (socket) => {
     });
   });
 
-  // Co-Scientist updates
+  // Co-Scientist updates - support new event format
+  socket.on("coscientist:step:add", (data: { projectId?: string; step?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const step = data.step || data.payload;
+    if (projectId && step) {
+      socket.to(projectId).emit("coscientist:step:add", step);
+    }
+  });
+
+  socket.on("coscientist:step:update", (data: { projectId?: string; step?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const step = data.step || data.payload;
+    if (projectId && step) {
+      socket.to(projectId).emit("coscientist:step:update", step);
+    }
+  });
+
+  socket.on("coscientist:comment:add", (data: { projectId?: string; stepId?: string; comment?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const stepId = data.stepId || data.payload?.stepId;
+    const comment = data.comment || data.payload?.comment;
+    if (projectId && stepId && comment) {
+      socket.to(projectId).emit("coscientist:comment:add", { stepId, comment });
+    }
+  });
+
+  // Legacy co-scientist event handlers
   socket.on("step-added", (data: { projectId: string; step: any }) => {
-    socket.to(data.projectId).emit("step-added", data.step);
+    socket.to(data.projectId).emit("coscientist:step:add", data.step);
   });
 
   socket.on("step-updated", (data: { projectId: string; step: any }) => {
-    socket.to(data.projectId).emit("step-updated", data.step);
+    socket.to(data.projectId).emit("coscientist:step:update", data.step);
   });
 
   socket.on("comment-added", (data: { projectId: string; stepId: string; comment: any }) => {
-    socket.to(data.projectId).emit("comment-added", {
+    socket.to(data.projectId).emit("coscientist:comment:add", {
       stepId: data.stepId,
       comment: data.comment,
     });
@@ -189,9 +299,18 @@ io.on("connection", (socket) => {
     socket.to(data.projectId).emit("mode-changed", data.mode);
   });
 
-  // Checkpoint events
+  // Checkpoint events - support new event format
+  socket.on("checkpoint:create", (data: { projectId?: string; checkpoint?: any; payload?: any }) => {
+    const projectId = data.projectId || currentProjectId;
+    const checkpoint = data.checkpoint || data.payload;
+    if (projectId && checkpoint) {
+      socket.to(projectId).emit("checkpoint:create", checkpoint);
+    }
+  });
+
+  // Legacy checkpoint event handlers
   socket.on("checkpoint-created", (data: { projectId: string; checkpoint: any }) => {
-    socket.to(data.projectId).emit("checkpoint-created", data.checkpoint);
+    socket.to(data.projectId).emit("checkpoint:create", data.checkpoint);
   });
 
   socket.on("checkpoint-restored", (data: { projectId: string; checkpointId: string }) => {
@@ -236,9 +355,8 @@ io.on("connection", (socket) => {
     console.log(`Client disconnected: ${socket.id}`);
 
     if (currentProjectId) {
-      socket.to(currentProjectId).emit("user-left", {
+      socket.to(currentProjectId).emit("user:left", {
         userId: currentUserId,
-        userName: currentUserName,
       });
 
       const room = projectRooms.get(currentProjectId);
@@ -253,6 +371,17 @@ io.on("connection", (socket) => {
 
     userCursors.delete(socket.id);
   });
+});
+
+// Handle server errors
+httpServer.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Please kill the existing process or use a different port.`);
+    console.error(`   Run: npx kill-port ${PORT}`);
+    process.exit(1);
+  } else {
+    throw err;
+  }
 });
 
 httpServer.listen(PORT, () => {

@@ -57,18 +57,19 @@ export default function DashboardPage() {
   const [joinHash, setJoinHash] = useState("");
   const [joinError, setJoinError] = useState("");
 
-  // Check session on mount
+  // Check session on mount - only if not already initialized
   useEffect(() => {
-    if (!isInitialized) {
+    if (!isInitialized && !authLoading) {
       checkSession();
     }
-  }, [isInitialized, checkSession]);
+  }, [isInitialized, authLoading, checkSession]);
 
+  // Only redirect after we're fully initialized and confirmed no user
   useEffect(() => {
-    if (isInitialized && !user) {
+    if (isInitialized && !authLoading && !user) {
       router.push("/login");
     }
-  }, [user, isInitialized, router]);
+  }, [user, isInitialized, authLoading, router]);
 
   useEffect(() => {
     const fetchProjects = async () => {

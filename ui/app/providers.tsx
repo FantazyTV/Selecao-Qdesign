@@ -31,13 +31,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { checkSession, isInitialized } = useAuthStore();
+  const { checkSession, isInitialized, _hasHydrated, user } = useAuthStore();
 
   useEffect(() => {
-    if (!isInitialized) {
+    // Only check session after hydration is complete
+    // And only if we don't already have a user (from localStorage)
+    if (_hasHydrated && !isInitialized && !user) {
       checkSession();
     }
-  }, [checkSession, isInitialized]);
+  }, [checkSession, isInitialized, _hasHydrated, user]);
 
   return <>{children}</>;
 }

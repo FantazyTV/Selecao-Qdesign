@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { User, Project, DataPoolItem, GraphNode, GraphEdge, CoScientistStep, Checkpoint } from "@/lib/types";
 import { authApi, getToken, setToken, removeToken } from "@/lib/api";
 
@@ -9,67 +9,122 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   isInitialized: boolean;
+  _hasHydrated: boolean;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
+  setHasHydrated: (state: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   checkSession: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  isLoading: true,
-  isInitialized: false,
-  
-  setUser: (user) => set({ user, isLoading: false }),
-  setLoading: (isLoading) => set({ isLoading }),
-  
-  login: async (email: string, password: string) => {
-    set({ isLoading: true });
-    try {
-      const response = await authApi.login({ email, password });
-      setToken(response.token);
-      set({ user: response.user, isLoading: false, isInitialized: true });
-    } catch (error) {
-      set({ isLoading: false });
-      throw error;
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      isLoading: true,
+      isInitialized: false,
+      _hasHydrated: false,
+      
+      setUser: (user) => set({ user, isLoading: false }),
+      setLoading: (isLoading) => set({ isLoading }),
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
+      
+      login: async (email: string, password: string) => {
+        set({ isLoading: true });
+        try {
+          const response = await authApi.login({ email, password });
+          setToken(response.token);
+          set({ user: response.user, isLoading: false, isInitialized: true });
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+      
+      register: async (name: string, email: string, password: string) => {
+        set({ isLoading: true });
+        try {
+          const response = await authApi.register({ name, email, password });
+          setToken(response.token);
+          set({ user: response.user, isLoading: false, isInitialized: true });
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+      
+      logout: () => {
+        removeToken();
+        set({ user: null, isInitialized: true });
+      },
+      
+      checkSession: async () => {
+        const token = getToken();
+        const currentUser = get().user;
+        
+        // If no token, clear user and mark initialized
+        if (!token) {
+          set({ user: null, isLoading: false, isInitialized: true });
+          return;
+        }
+        
+        // If we already have a persisted user AND token exists, trust it
+        // Only validate with server in background, don't block
+        if (currentUser) {
+          set({ isLoading: false, isInitialized: true });
+          
+          // Optionally validate in background (don't logout on failure)
+          try {
+            const response = await authApi.getSession();
+            // Only update if we got a valid response
+            if (response.user) {
+              set({ user: response.user });
+            }
+          } catch {
+            // Silently ignore - keep the local user
+            // Only logout if we explicitly get a 401
+            console.warn('Session validation failed, using cached user');
+          }
+          return;
+        }
+        
+        // No cached user but have token - try to get session
+        try {
+          const response = await authApi.getSession();
+          set({ user: response.user, isLoading: false, isInitialized: true });
+        } catch (error: any) {
+          // Only clear token if it's actually invalid (401)
+          if (error?.statusCode === 401) {
+            removeToken();
+          }
+          set({ user: null, isLoading: false, isInitialized: true });
+        }
+      },
+    }),
+    {
+      name: "qdesign-auth-storage",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ user: state.user }), // Only persist user
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error('Failed to rehydrate auth storage:', error);
+          return;
+        }
+        if (state) {
+          // Mark as hydrated - user is restored from localStorage
+          state._hasHydrated = true;
+          // If we have a user, mark as initialized immediately
+          if (state.user) {
+            state.isInitialized = true;
+            state.isLoading = false;
+          }
+        }
+      },
     }
-  },
-  
-  register: async (name: string, email: string, password: string) => {
-    set({ isLoading: true });
-    try {
-      const response = await authApi.register({ name, email, password });
-      setToken(response.token);
-      set({ user: response.user, isLoading: false, isInitialized: true });
-    } catch (error) {
-      set({ isLoading: false });
-      throw error;
-    }
-  },
-  
-  logout: () => {
-    removeToken();
-    set({ user: null, isInitialized: true });
-  },
-  
-  checkSession: async () => {
-    const token = getToken();
-    if (!token) {
-      set({ user: null, isLoading: false, isInitialized: true });
-      return;
-    }
-    
-    try {
-      const response = await authApi.getSession();
-      set({ user: response.user, isLoading: false, isInitialized: true });
-    } catch {
-      removeToken();
-      set({ user: null, isLoading: false, isInitialized: true });
-    }
-  },
-}));
+  )
+);
 
 interface ProjectState {
   project: Project | null;
