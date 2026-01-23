@@ -1,0 +1,274 @@
+@import "tailwindcss";
+
+/* Dark Biology Theme for QDesign */
+:root {
+  --background: #0a0f0a; /* Very dark green-black */
+  --foreground: #e8f5e8; /* Light green-white */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  /* Dark Biology Color Palette */
+  --color-primary: #22c55e; /* Biology green */
+  --color-primary-foreground: #0a0f0a;
+  --color-secondary: #1a2e1a; /* Dark green */
+  --color-secondary-foreground: #e8f5e8;
+  --color-accent: #16a34a; /* Darker green accent */
+  --color-accent-foreground: #0a0f0a;
+  --color-muted: #0f1b0f; /* Very dark green */
+  --color-muted-foreground: #94a684; /* Muted green */
+  --color-destructive: #dc2626; /* Red for errors */
+  --color-destructive-foreground: #fef2f2;
+  --color-border: #1a2e1a; /* Dark green border */
+  --color-input: #0f1b0f; /* Dark input background */
+  --color-ring: #22c55e; /* Green focus ring */
+  --color-card: #0d1a0d; /* Slightly lighter than background */
+  --color-card-foreground: #e8f5e8;
+  --color-popover: #0d1a0d;
+  --color-popover-foreground: #e8f5e8;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Dark theme custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f1b0f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a2e1a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #22c55e;
+}
+
+/* Focus styles with green theme */
+*:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Graph styles for dark theme */
+.react-flow__node {
+  cursor: pointer;
+}
+
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border: 2px solid #0a0f0a;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* NGL Viewer overrides */
+.ngl-viewer canvas {
+  border-radius: 0.5rem;
+}
+
+/* PDF Viewer dark theme overrides */
+.react-pdf__Page {
+  background: #0d1a0d !important;
+  border: 1px solid #1a2e1a !important;
+}
+
+.react-pdf__Page__textContent {
+  background: transparent !important;
+}
+
+/* Dark theme mode tabs with green accent */
+.mode-tab {
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #22c55e;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.mode-tab[data-state="active"]::after {
+  width: 100%;
+}
+
+/* Knowledge graph node styles with biology theme */
+.graph-node {
+  transition: all 0.2s ease;
+}
+
+.graph-node:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.graph-node-pdb {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: 2px solid #15803d;
+}
+
+.graph-node-pdf {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border: 2px solid #991b1b;
+}
+
+.graph-node-image {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: 2px solid #1e40af;
+}
+
+.graph-node-sequence {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border: 2px solid #5b21b6;
+}
+
+.graph-node-text {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  border: 2px solid #92400e;
+}
+
+/* Trust level indicators with green theme */
+.trust-high {
+  border-color: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+.trust-medium {
+  border-color: #eab308;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.4);
+}
+
+.trust-low {
+  border-color: #dc2626;
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.4);
+}
+
+.trust-untrusted {
+  border-color: #6b7280;
+  opacity: 0.6;
+}
+
+/* Dark theme form inputs */
+input, textarea, select {
+  background-color: #0f1b0f !important;
+  border-color: #1a2e1a !important;
+  color: #e8f5e8 !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #94a684 !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1) !important;
+}
+
+/* Dark theme buttons */
+button {
+  transition: all 0.2s ease;
+}
+
+/* Dark theme cards and surfaces */
+.bg-white {
+  background-color: #0d1a0d !important;
+}
+
+.bg-gray-50, .bg-slate-50 {
+  background-color: #0f1b0f !important;
+}
+
+.bg-gray-100, .bg-slate-100 {
+  background-color: #1a2e1a !important;
+}
+
+/* Text colors for dark theme */
+.text-gray-600, .text-slate-600 {
+  color: #94a684 !important;
+}
+
+.text-gray-700, .text-slate-700 {
+  color: #d4d4aa !important;
+}
+
+.text-gray-800, .text-slate-800, .text-gray-900, .text-slate-900 {
+  color: #e8f5e8 !important;
+}
+
+/* Border colors for dark theme */
+.border-gray-200, .border-slate-200 {
+  border-color: #1a2e1a !important;
+}
+
+.border-gray-300, .border-slate-300 {
+  border-color: #22c55e !important;
+}

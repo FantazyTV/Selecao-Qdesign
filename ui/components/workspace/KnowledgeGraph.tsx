@@ -1,0 +1,646 @@
+"use client";
+
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  ReactFlow,
+  Node,
+  Edge,
+  Controls,
+  Background,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Connection,
+  Panel,
+  NodeTypes,
+  EdgeTypes,
+  MarkerType,
+  Handle,
+  Position,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Plus,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Eye,
+  Trash2,
+  MessageSquare,
+  AlertTriangle,
+  Check,
+  X,
+  Box,
+  FileText,
+  Image as ImageIcon,
+  FileCode,
+  File,
+  Link as LinkIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { GraphNode, GraphEdge, KnowledgeGraph } from "@/lib/types";
+import { v4 as uuidv4 } from "uuid";
+
+interface KnowledgeGraphViewProps {
+  graph: KnowledgeGraph;
+  onNodeAdd: (node: GraphNode) => void;
+  onNodeUpdate: (node: GraphNode) => void;
+  onNodeRemove: (nodeId: string, reason?: string) => void;
+  onEdgeAdd: (edge: GraphEdge) => void;
+  onEdgeRemove: (edgeId: string) => void;
+  onNodeView: (node: GraphNode) => void;
+  isReadOnly?: boolean;
+}
+
+const NODE_COLORS: Record<string, { bg: string; border: string }> = {
+  pdb: { bg: "#dcfce7", border: "#22c55e" },
+  pdf: { bg: "#fee2e2", border: "#ef4444" },
+  image: { bg: "#dbeafe", border: "#3b82f6" },
+  sequence: { bg: "#ede9fe", border: "#8b5cf6" },
+  text: { bg: "#fef3c7", border: "#f59e0b" },
+  retrieved: { bg: "#f1f5f9", border: "#64748b" },
+  annotation: { bg: "#fce7f3", border: "#ec4899" },
+};
+
+const TRUST_COLORS: Record<string, string> = {
+  high: "#22c55e",
+  medium: "#f59e0b",
+  low: "#ef4444",
+  untrusted: "#6b7280",
+};
+
+const NODE_ICONS: Record<string, React.ReactNode> = {
+  pdb: <Box className="h-4 w-4" />,
+  pdf: <FileText className="h-4 w-4" />,
+  image: <ImageIcon className="h-4 w-4" />,
+  sequence: <FileCode className="h-4 w-4" />,
+  text: <File className="h-4 w-4" />,
+  retrieved: <LinkIcon className="h-4 w-4" />,
+  annotation: <MessageSquare className="h-4 w-4" />,
+};
+
+// Custom Node Component
+function CustomNode({ data, selected }: { data: GraphNode & { onView: () => void; onSelect: () => void }; selected: boolean }) {
+  const colors = NODE_COLORS[data.type] || NODE_COLORS.text;
+  const trustColor = TRUST_COLORS[data.trustLevel];
+
+  return (
+    <div
+      className={cn(
+        "relative cursor-pointer rounded-lg border-2 px-4 py-3 shadow-sm transition-all",
+        selected && "ring-2 ring-blue-500 ring-offset-2"
+      )}
+      style={{
+        backgroundColor: colors.bg,
+        borderColor: colors.border,
+        minWidth: 150,
+        maxWidth: 200,
+      }}
+      onClick={data.onSelect}
+      onDoubleClick={data.onView}
+    >
+      {/* Trust indicator */}
+      <div
+        className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white"
+        style={{ backgroundColor: trustColor }}
+        title={`Trust: ${data.trustLevel}`}
+      />
+
+      {/* Content */}
+      <div className="flex items-start gap-2">
+        <span style={{ color: colors.border }}>{NODE_ICONS[data.type]}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-100 truncate">{data.label}</p>
+          {data.description && (
+            <p className="text-xs text-gray-400 line-clamp-2 mt-1">
+              {data.description}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Notes indicator */}
+      {data.notes && data.notes.length > 0 && (
+        <div className="mt-2 flex items-center gap-1 text-xs text-gray-400">
+          <MessageSquare className="h-3 w-3" />
+          {data.notes.length} note{data.notes.length !== 1 ? "s" : ""}
+        </div>
+      )}
+
+      {/* Handles */}
+      <Handle type="target" position={Position.Top} className="!bg-green-500" />
+      <Handle type="source" position={Position.Bottom} className="!bg-green-500" />
+    </div>
+  );
+}
+
+const nodeTypes: NodeTypes = {
+  custom: CustomNode,
+};
+
+export function KnowledgeGraphView({
+  graph,
+  onNodeAdd,
+  onNodeUpdate,
+  onNodeRemove,
+  onEdgeAdd,
+  onEdgeRemove,
+  onNodeView,
+  isReadOnly = false,
+}: KnowledgeGraphViewProps) {
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<GraphEdge | null>(null);
+  const [isAddNodeOpen, setIsAddNodeOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [newNote, setNewNote] = useState("");
+
+  const [newNode, setNewNode] = useState({
+    type: "text" as GraphNode["type"],
+    label: "",
+    description: "",
+    content: "",
+  });
+
+  // Convert graph nodes to ReactFlow nodes
+  const initialNodes: Node[] = useMemo(
+    () =>
+      graph.nodes.map((node) => ({
+        id: node.id,
+        type: "custom",
+        position: node.position,
+        data: {
+          ...node,
+          onView: () => onNodeView(node),
+          onSelect: () => setSelectedNode(node),
+        },
+      })),
+    [graph.nodes, onNodeView]
+  );
+
+  // Convert graph edges to ReactFlow edges
+  const initialEdges = useMemo(
+    () =>
+      graph.edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        label: edge.label,
+        animated: edge.correlationType === "supports",
+        style: {
+          stroke:
+            edge.correlationType === "contradicts"
+              ? "#ef4444"
+              : edge.correlationType === "supports"
+              ? "#22c55e"
+              : "#64748b",
+          strokeWidth: edge.strength * 3,
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+        },
+        data: edge as unknown as Record<string, unknown>,
+      })),
+    [graph.edges]
+  );
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const onConnect = useCallback(
+    (params: Connection) => {
+      if (isReadOnly) return;
+
+      const newEdge: GraphEdge = {
+        id: uuidv4(),
+        source: params.source!,
+        target: params.target!,
+        correlationType: "similar",
+        strength: 0.5,
+      };
+
+      onEdgeAdd(newEdge);
+      setEdges((eds) =>
+        addEdge(
+          {
+            ...params,
+            id: newEdge.id,
+            animated: false,
+            style: { stroke: "#64748b", strokeWidth: 1.5 },
+            markerEnd: { type: MarkerType.ArrowClosed },
+          },
+          eds
+        )
+      );
+    },
+    [isReadOnly, onEdgeAdd, setEdges]
+  );
+
+  const handleAddNode = () => {
+    if (!newNode.label) return;
+
+    const node: GraphNode = {
+      id: uuidv4(),
+      type: newNode.type,
+      label: newNode.label,
+      description: newNode.description,
+      content: newNode.content,
+      position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
+      trustLevel: "medium",
+      notes: [],
+    };
+
+    onNodeAdd(node);
+    setNewNode({ type: "text", label: "", description: "", content: "" });
+    setIsAddNodeOpen(false);
+  };
+
+  const handleDeleteNode = () => {
+    if (!selectedNode) return;
+    onNodeRemove(selectedNode.id, deleteReason);
+    setSelectedNode(null);
+    setIsDeleteDialogOpen(false);
+    setDeleteReason("");
+  };
+
+  const handleAddNote = () => {
+    if (!selectedNode || !newNote.trim()) return;
+
+    const updatedNode: GraphNode = {
+      ...selectedNode,
+      notes: [
+        ...selectedNode.notes,
+        {
+          id: uuidv4(),
+          text: newNote,
+          author: "current-user",
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    };
+
+    onNodeUpdate(updatedNode);
+    setSelectedNode(updatedNode);
+    setNewNote("");
+  };
+
+  const handleTrustChange = (trust: GraphNode["trustLevel"]) => {
+    if (!selectedNode) return;
+    const updatedNode = { ...selectedNode, trustLevel: trust };
+    onNodeUpdate(updatedNode);
+    setSelectedNode(updatedNode);
+  };
+
+  return (
+    <div className="flex h-full">
+      {/* Graph Canvas */}
+      <div className="flex-1 bg-gray-900">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          fitView
+          className="bg-gray-900"
+          onNodeClick={(_, node) => {
+            const graphNode = graph.nodes.find((n) => n.id === node.id);
+            if (graphNode) setSelectedNode(graphNode);
+          }}
+          onEdgeClick={(_, edge) => {
+            const graphEdge = graph.edges.find((e) => e.id === edge.id);
+            if (graphEdge) setSelectedEdge(graphEdge);
+          }}
+          onPaneClick={() => {
+            setSelectedNode(null);
+            setSelectedEdge(null);
+          }}
+        >
+          <Controls />
+          <MiniMap
+            nodeColor={(node) => {
+              const colors = NODE_COLORS[node.data?.type as string] || NODE_COLORS.text;
+              return colors.border;
+            }}
+            maskColor="rgb(17, 24, 39, 0.8)"
+          />
+          <Background gap={20} size={1} color="#374151" />
+
+          {/* Top Panel */}
+          <Panel position="top-left" className="flex gap-2">
+            {!isReadOnly && (
+              <Button size="sm" onClick={() => setIsAddNodeOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Node
+              </Button>
+            )}
+          </Panel>
+
+          {/* Legend */}
+          <Panel position="bottom-left" className="rounded-lg border border-gray-700 bg-gray-900 p-3 shadow-sm">
+            <p className="text-xs font-medium text-gray-300 mb-2">Legend</p>
+            <div className="space-y-1">
+              {Object.entries(NODE_COLORS).map(([type, colors]) => (
+                <div key={type} className="flex items-center gap-2 text-xs text-gray-400">
+                  <div
+                    className="h-3 w-3 rounded"
+                    style={{ backgroundColor: colors.bg, borderColor: colors.border, borderWidth: 1 }}
+                  />
+                  <span className="capitalize">{type}</span>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </ReactFlow>
+      </div>
+
+      {/* Side Panel */}
+      {(selectedNode || selectedEdge) && (
+        <div className="w-80 border-l border-gray-800 bg-gray-900">
+          <ScrollArea className="h-full">
+            {selectedNode && (
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-green-100">Node Details</h3>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-gray-400 hover:bg-gray-800"
+                    onClick={() => setSelectedNode(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Node Info */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span style={{ color: NODE_COLORS[selectedNode.type]?.border }}>
+                      {NODE_ICONS[selectedNode.type]}
+                    </span>
+                    <span className="font-medium text-green-100">{selectedNode.label}</span>
+                  </div>
+
+                  <Badge variant="secondary" className="bg-gray-800 text-gray-300">{selectedNode.type.toUpperCase()}</Badge>
+
+                  {selectedNode.description && (
+                    <p className="text-sm text-gray-400">{selectedNode.description}</p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
+                    onClick={() => onNodeView(selectedNode)}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    View
+                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-500 border-gray-700 hover:bg-red-950"
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                {/* Trust Level */}
+                {!isReadOnly && (
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-300">Trust Level</Label>
+                    <Select
+                      value={selectedNode.trustLevel}
+                      onValueChange={(v) => handleTrustChange(v as GraphNode["trustLevel"])}
+                    >
+                      <SelectTrigger className="h-8 bg-gray-800 border-gray-700 text-gray-100">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        <SelectItem value="high">
+                          <span className="flex items-center gap-2">
+                            <Check className="h-3 w-3 text-green-500" />
+                            High Trust
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="medium">
+                          <span className="flex items-center gap-2">
+                            <AlertTriangle className="h-3 w-3 text-amber-500" />
+                            Medium Trust
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="low">
+                          <span className="flex items-center gap-2">
+                            <AlertTriangle className="h-3 w-3 text-red-500" />
+                            Low Trust
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="untrusted">
+                          <span className="flex items-center gap-2">
+                            <X className="h-3 w-3 text-gray-500" />
+                            Untrusted
+                          </span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Notes */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-gray-300">Notes</Label>
+                  <div className="space-y-2">
+                    {selectedNode.notes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="rounded-lg bg-gray-800 p-2 text-xs text-gray-300"
+                      >
+                        {note.text}
+                      </div>
+                    ))}
+                    {!isReadOnly && (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add a note..."
+                          value={newNote}
+                          onChange={(e) => setNewNote(e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                        <Button size="sm" className="h-8" onClick={handleAddNote}>
+                          Add
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedEdge && (
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-green-100">Edge Details</h3>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-gray-400 hover:bg-gray-800"
+                    onClick={() => setSelectedEdge(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  <Badge
+                    variant={
+                      selectedEdge.correlationType === "supports"
+                        ? "success"
+                        : selectedEdge.correlationType === "contradicts"
+                        ? "destructive"
+                        : "secondary"
+                    }
+                  >
+                    {selectedEdge.correlationType}
+                  </Badge>
+
+                  {selectedEdge.explanation && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-gray-300">Explanation</Label>
+                      <p className="text-sm text-gray-400">{selectedEdge.explanation}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-300">Strength</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-500 rounded-full"
+                          style={{ width: `${selectedEdge.strength * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {Math.round(selectedEdge.strength * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* Add Node Dialog */}
+      <Dialog open={isAddNodeOpen} onOpenChange={setIsAddNodeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Node</DialogTitle>
+            <DialogDescription>Add a new element to the knowledge graph</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Select
+                value={newNode.type}
+                onValueChange={(v) => setNewNode({ ...newNode, type: v as GraphNode["type"] })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdb">PDB Structure</SelectItem>
+                  <SelectItem value="pdf">PDF Document</SelectItem>
+                  <SelectItem value="image">Image</SelectItem>
+                  <SelectItem value="sequence">Sequence</SelectItem>
+                  <SelectItem value="text">Text Note</SelectItem>
+                  <SelectItem value="annotation">Annotation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Label</Label>
+              <Input
+                placeholder="Node name..."
+                value={newNode.label}
+                onChange={(e) => setNewNode({ ...newNode, label: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                placeholder="Brief description..."
+                value={newNode.description}
+                onChange={(e) => setNewNode({ ...newNode, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleAddNode} disabled={!newNode.label}>
+              Add Node
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Node</DialogTitle>
+            <DialogDescription>
+              This will remove the node from the knowledge graph. Please provide a reason
+              to help improve future retrievals.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label>Reason for removal</Label>
+            <Textarea
+              placeholder="e.g., Outdated information, irrelevant to objective..."
+              value={deleteReason}
+              onChange={(e) => setDeleteReason(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteNode}>
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
