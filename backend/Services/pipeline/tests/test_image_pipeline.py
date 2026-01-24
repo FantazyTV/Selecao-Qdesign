@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path.cwd()))
 
 from pipeline.orchestration.pipeline import QDesignPipeline
 from pipeline.ingestion.image_ingester import ImageIngester
+from pipeline.enrichment.image_enricher import ImageEnricher
 from pipeline.embedding.fastembed_embedder import FastembedImageEmbedder
 from pipeline.collectors.base_collector import BaseCollector, CollectorRecord
 from qdrant_client import QdrantClient
@@ -133,6 +134,7 @@ def test_image_pipeline():
     pipeline = QDesignPipeline(name="image_pipeline")
     pipeline.register_collector("local", LocalImageCollector("image"))
     pipeline.register_ingester("image", ImageIngester())
+    pipeline.register_enricher("image", ImageEnricher())
     pipeline.register_embedder("image", FastembedImageEmbedder())
     
     start = datetime.now()
@@ -161,6 +163,29 @@ def test_image_pipeline():
     elapsed = (datetime.now() - start).total_seconds()
     
     print(f"Ingested {len(collected)} images in {elapsed:.2f}s")
+    
+    # Step 3.5: Enrich images with visual features
+    print(f"\nSTEP 3.5: Enrich images with visual features")
+    print("-" * 70)
+    
+    start = datetime.now()
+    pipeline.enrich()
+    elapsed = (datetime.now() - start).total_seconds()
+    
+    enriched_count = sum(1 for r in pipeline.records if r.metadata and len(r.metadata) > 2)
+    print(f"Enriched {enriched_count} images in {elapsed:.2f}s")
+    
+    # Display sample enrichment
+    if pipeline.records:
+        sample_record = pipeline.records[0]
+        if sample_record.metadata:
+            print(f"\nSample enriched metadata for {sample_record.id}:")
+            for key in list(sample_record.metadata.keys())[:5]:
+                value = sample_record.metadata[key]
+                if isinstance(value, (int, float)):
+                    print(f"  • {key}: {value:.2f}" if isinstance(value, float) else f"  • {key}: {value}")
+                else:
+                    print(f"  • {key}: {value}")
     
     # Step 4: Embed images
     print(f"\nSTEP 4: Embed images to vectors")

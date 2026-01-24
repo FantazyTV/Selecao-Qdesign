@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from pipeline.orchestration.pipeline import QDesignPipeline, CollectorRecord
 from pipeline.collectors.base_collector import BaseCollector
 from pipeline.ingestion.protein_ingester import SequenceIngester
+from pipeline.enrichment.protein_enricher import SequenceEnricher
 from pipeline.embedding.fastembed_embedder import FastembedSequenceEmbedder
 from qdrant_client import QdrantClient
 
@@ -118,6 +119,7 @@ def test_sequence_pipeline():
     pipeline = QDesignPipeline(name="sequence_pipeline")
     pipeline.register_collector("local", LocalSequenceCollector("sequence"))
     pipeline.register_ingester("sequence", SequenceIngester())
+    pipeline.register_enricher("sequence", SequenceEnricher())
     pipeline.register_embedder("sequence", FastembedSequenceEmbedder())
     
     start = datetime.now()
@@ -146,6 +148,27 @@ def test_sequence_pipeline():
     elapsed = (datetime.now() - start).total_seconds()
     
     print(f"Ingested {len(collected)} sequence files in {elapsed:.2f}s")
+    
+    # Step 3.5: Enrich sequences with properties
+    print(f"\nSTEP 3.5: Enrich sequences with properties")
+    print("-" * 70)
+    
+    start = datetime.now()
+    pipeline.enrich()
+    elapsed = (datetime.now() - start).total_seconds()
+    
+    enriched_count = sum(1 for r in pipeline.records if r.metadata and "length" in r.metadata)
+    print(f"Enriched {enriched_count} sequences in {elapsed:.2f}s")
+    
+    # Display sample enrichment
+    if pipeline.records:
+        sample_record = pipeline.records[0]
+        if sample_record.metadata and "length" in sample_record.metadata:
+            print(f"\nSample enriched metadata for {sample_record.id}:")
+            for key in ["length", "hydrophobicity_ratio", "net_charge", "cysteine_count"]:
+                if key in sample_record.metadata:
+                    value = sample_record.metadata[key]
+                    print(f"  • {key}: {value:.4f}" if isinstance(value, float) else f"  • {key}: {value}")
     
     # Step 4: Embed sequences
     print(f"\nSTEP 4: Embed sequences to vectors")
