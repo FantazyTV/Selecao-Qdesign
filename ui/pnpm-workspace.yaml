@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - '@scarf/scarf'
+  - core-js
+  - esbuild
+  - sharp
+  - unrs-resolver

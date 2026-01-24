@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/stores";
-import { projectsApi, ApiError } from "@/lib/api";
+import { projectsApi, ApiError, searchApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +44,10 @@ export default function DashboardPage() {
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [searchInput, setSearchInput] = useState({ pdb_id: "5xjh", text_query: "plastic degradation" });
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchMutations, setSearchMutations] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Create project form
   const [newProject, setNewProject] = useState({
@@ -138,6 +142,30 @@ export default function DashboardPage() {
       }
     } finally {
       setIsJoining(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    setIsSearching(true);
+    try {
+      const data = await searchApi.hybrid({
+        pdb_id: searchInput.pdb_id,
+        text_query: searchInput.text_query,
+        top_k: 5,
+        alpha: 0.6,
+        beta: 0.2,
+        gamma: 0.2,
+        use_structure: true,
+        include_mutations: true,
+      });
+      setSearchResults(data.results || []);
+      setSearchMutations(data.mutations || []);
+    } catch (error) {
+      console.error("Search failed:", error);
+      setSearchResults([]);
+      setSearchMutations([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -335,6 +363,71 @@ export default function DashboardPage() {
               </DialogContent>
             </Dialog>
           </div>
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <Card className="border-gray-800 bg-gray-900 lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-green-100">Hybrid Search (Sequence + Text + Structure)</CardTitle>
+              <CardDescription className="text-gray-400">
+                Quick demo against Qdrant + Gemini text embeddings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-gray-300">PDB ID</Label>
+                  <Input
+                    value={searchInput.pdb_id}
+                    onChange={(e) => setSearchInput({ ...searchInput, pdb_id: e.target.value })}
+                    className="bg-gray-950 border-gray-800 text-gray-100"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-gray-300">Text query</Label>
+                  <Input
+                    value={searchInput.text_query}
+                    onChange={(e) => setSearchInput({ ...searchInput, text_query: e.target.value })}
+                    className="bg-gray-950 border-gray-800 text-gray-100"
+                  />
+                </div>
+              </div>
+              <Button onClick={handleSearch} disabled={isSearching} className="bg-green-500 text-gray-900 hover:bg-green-400">
+                {isSearching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ArrowRight className="mr-2 h-4 w-4" />}
+                Run Hybrid Search
+              </Button>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-300">Top Results</h3>
+                  <div className="mt-2 space-y-2">
+                    {searchResults.map((r) => (
+                      <div key={r.pdb_id} className="flex items-center justify-between rounded-md border border-gray-800 bg-gray-950 px-3 py-2">
+                        <div className="text-sm text-gray-200">{r.pdb_id}</div>
+                        <Badge className="bg-green-900 text-green-200">{r.score?.toFixed(3)}</Badge>
+                      </div>
+                    ))}
+                    {searchResults.length === 0 && (
+                      <div className="text-sm text-gray-500">No results yet</div>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-300">Mutation Suggestions</h3>
+                  <div className="mt-2 space-y-2">
+                    {searchMutations.map((m) => (
+                      <div key={`${m.pdb_id}-${m.mutation}`} className="rounded-md border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-gray-200">
+                        {m.mutation}
+                      </div>
+                    ))}
+                    {searchMutations.length === 0 && (
+                      <div className="text-sm text-gray-500">No mutations yet</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Projects Grid */}

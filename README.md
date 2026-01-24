@@ -119,21 +119,25 @@ To ensure victory, the team will optimize the system for one specific, verifiabl
 This section describes what works today, what is missing, and how to reproduce the working environment.
 
 ## What Works
-- **Qdrant** running in Docker and populated with sequence embeddings.
+- **Qdrant** running in Docker and populated with sequence + structure + text embeddings.
 - **PostgreSQL** running in Docker and storing sequences + metadata.
 - **Sequence embeddings** using **ESM C (esmc_300m)** from the EvolutionaryScale ESM library.
+- **Structure embeddings** via CA‑distance histograms (baseline structure signal).
+- **Text embedding pipeline** using **Gemini embeddings** (requires API key).
 - **Search API** (FastAPI) with:
     - sequence search
-    - hybrid search (sequence + Gemini text embeddings)
+    - hybrid search (sequence + Gemini text embeddings + optional structure fusion)
     - simple mutation suggestions (diff‑based)
-- **Text embedding pipeline** using **Gemini embeddings** (requires API key).
+- **UI** running on Next.js with a dashboard demo panel for hybrid search.
+- **NestJS backend** running with **PostgreSQL + TypeORM** (auth + projects endpoints).
 
 ## What Does Not Work / Not Yet Wired
-- **UI integration** with the search API (manual curl testing only).
+- **AlphaFold/EMBL‑EBI API integration** (not wired into backend or UI yet).
 - **Full text corpus ingestion** (only a small sample JSONL tested).
-- **Structure‑level embeddings** (we embed sequences only; 3D structure encoding is not implemented).
+- **Structure embeddings are baseline only** (no learned 3D encoder).
 - **ESM3 generation** or Forge/SageMaker usage (not integrated).
 - **Safety/critic module** (not implemented).
+- **Realtime collaboration** (socket events exist but server integration not validated end‑to‑end).
 
 ## How to Reproduce the Working Environment
 
@@ -178,7 +182,23 @@ This section describes what works today, what is missing, and how to reproduce t
     - Sequence search: `/search`
     - Hybrid search: `/search_hybrid`
 
+### 7) App Backend + UI
+- **NestJS Backend:** [backend/Core](backend/Core)
+    - Base URL: `http://localhost:3001/api`
+    - Auth: `/auth/register`, `/auth/login`, `/auth/session`, `/auth/logout`
+    - Projects: `/projects`, `/projects/:id`, `/projects/join`, `/projects/:id/checkpoints`
+- **Next.js UI:** [ui](ui)
+    - Dev server: `http://localhost:3000`
+    - Dashboard includes a hybrid search demo panel
+
 ## Known Constraints
 - **CPU inference is slow** with ESM C; GPU support is limited by VRAM.
 - **Gemini API key must not be committed**; keep it in environment variables only.
 - **Hybrid search quality** depends on availability of text embeddings in `petase_text_gemini`.
+
+## What We Should Add Next
+1. **AlphaFold/EMBL‑EBI API adapter** (backend service + UI panel).
+2. **Learned structure encoder** (replace CA‑distance histograms).
+3. **Full text ingestion pipeline** (papers + metadata at scale).
+4. **Safety/critic checks** (toxicity/feasibility filters).
+5. **Realtime collaboration validation** (socket server + auth‑scoped events).

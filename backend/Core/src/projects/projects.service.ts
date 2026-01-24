@@ -1,56 +1,68 @@
 import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { Project, ProjectDocument } from './schemas/project.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import { Project } from './entities/project.entity';
 import { CreateProjectDto, UpdateProjectDto, CreateCheckpointDto, JoinProjectDto } from './dto';
+
+type CheckpointPayload = {
+  id?: string;
+  mode?: string;
+  dataPool?: Array<Record<string, unknown>>;
+  knowledgeGraph?: Record<string, unknown>;
+  coScientistSteps?: Array<Record<string, unknown>>;
+};
 
 @Injectable()
 export class ProjectsService {
   constructor(
-    @InjectModel(Project.name) private projectModel: Model<ProjectDocument>,
+    @InjectRepository(Project) private projectRepo: Repository<Project>,
   ) {}
 
-  async create(createProjectDto: CreateProjectDto, userId: string): Promise<ProjectDocument> {
-    const project = new this.projectModel({
-      ...createProjectDto,
-      owner: new Types.ObjectId(userId),
+  async create(createProjectDto: CreateProjectDto, userId: string): Promise<Project> {
+    const project = this.projectRepo.create({
+      hash: uuidv4().substring(0, 8).toUpperCase(),
+      name: createProjectDto.name,
+      mainObjective: createProjectDto.mainObjective,
+      secondaryObjectives: createProjectDto.secondaryObjectives ?? [],
+      description: createProjectDto.description,
+      ownerId: userId,
       members: [
         {
-          user: new Types.ObjectId(userId),
+          user: userId,
           role: 'owner',
-          joinedAt: new Date(),
+          joinedAt: new Date().toISOString(),
         },
       ],
+      currentMode: 'pool',
+      dataPool: [],
+      knowledgeGraph: { nodes: [], edges: [], groups: [] },
+      coScientistSteps: [],
+      checkpoints: [],
     });
-    return project.save();
+    return this.projectRepo.save(project);
   }
 
-  async findAllForUser(userId: string): Promise<ProjectDocument[]> {
-    return this.projectModel
-      .find({
-        'members.user': new Types.ObjectId(userId),
+  async findAllForUser(userId: string): Promise<Project[]> {
+    return this.projectRepo
+      .createQueryBuilder('project')
+      .where('project.members @> :member', {
+        member: JSON.stringify([{ user: userId }]),
       })
-      .populate('owner', 'name email avatar')
-      .populate('members.user', 'name email avatar')
-      .sort({ updatedAt: -1 })
-      .exec();
+      .orderBy('project.updatedAt', 'DESC')
+      .getMany();
   }
 
-  async findById(id: string, userId: string): Promise<ProjectDocument> {
-    const project = await this.projectModel
-      .findById(id)
-      .populate('owner', 'name email avatar')
-      .populate('members.user', 'name email avatar')
-      .populate('checkpoints.createdBy', 'name email')
-      .exec();
+  async findById(id: string, userId: string): Promise<Project> {
+    const project = await this.projectRepo.findOne({ where: { id } });
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
     // Check if user has access
-    const hasAccess = project.members.some(
-      (m) => m.user._id.toString() === userId,
+    const hasAccess = (project.members || []).some(
+      (m: any) => m.user === userId,
     );
 
     if (!hasAccess) {
@@ -64,16 +76,16 @@ export class ProjectsService {
     id: string,
     updateProjectDto: UpdateProjectDto,
     userId: string,
-  ): Promise<ProjectDocument> {
-    const project = await this.projectModel.findById(id).exec();
+  ): Promise<Project> {
+    const project = await this.projectRepo.findOne({ where: { id } });
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
     // Check if user has edit access
-    const member = project.members.find(
-      (m) => m.user.toString() === userId,
+    const member = (project.members || []).find(
+      (m: any) => m.user === userId,
     );
 
     if (!member || member.role === 'viewer') {
@@ -98,14 +110,9 @@ export class ProjectsService {
       }
     }
 
-    await project.save();
+    await this.projectRepo.save(project);
 
-    const updatedProject = await this.projectModel
-      .findById(id)
-      .populate('owner', 'name email avatar')
-      .populate('members.user', 'name email avatar')
-      .exec();
-
+    const updatedProject = await this.projectRepo.findOne({ where: { id } });
     if (!updatedProject) {
       throw new NotFoundException('Project not found');
     }
@@ -113,20 +120,18 @@ export class ProjectsService {
     return updatedProject;
   }
 
-  async join(joinProjectDto: JoinProjectDto, userId: string): Promise<ProjectDocument> {
+  async join(joinProjectDto: JoinProjectDto, userId: string): Promise<Project> {
     const { hash } = joinProjectDto;
 
-    const project = await this.projectModel
-      .findOne({ hash: hash.toUpperCase() })
-      .exec();
+    const project = await this.projectRepo.findOne({ where: { hash: hash.toUpperCase() } });
 
     if (!project) {
       throw new NotFoundException('Project not found. Check the join code.');
     }
 
     // Check if already a member
-    const existingMember = project.members.find(
-      (m) => m.user.toString() === userId,
+    const existingMember = (project.members || []).find(
+      (m: any) => m.user === userId,
     );
 
     if (existingMember) {
@@ -134,20 +139,16 @@ export class ProjectsService {
     }
 
     // Add user as editor
+    project.members = project.members || [];
     project.members.push({
-      user: new Types.ObjectId(userId),
+      user: userId,
       role: 'editor',
-      joinedAt: new Date(),
-    } as any);
+      joinedAt: new Date().toISOString(),
+    });
 
-    await project.save();
+    await this.projectRepo.save(project);
 
-    const joinedProject = await this.projectModel
-      .findById(project._id)
-      .populate('owner', 'name email avatar')
-      .populate('members.user', 'name email avatar')
-      .exec();
-
+    const joinedProject = await this.projectRepo.findOne({ where: { id: project.id } });
     if (!joinedProject) {
       throw new NotFoundException('Project not found');
     }
@@ -159,16 +160,16 @@ export class ProjectsService {
     projectId: string,
     createCheckpointDto: CreateCheckpointDto,
     userId: string,
-  ): Promise<ProjectDocument> {
-    const project = await this.projectModel.findById(projectId).exec();
+  ): Promise<Project> {
+    const project = await this.projectRepo.findOne({ where: { id: projectId } });
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
     // Check access
-    const member = project.members.find(
-      (m) => m.user.toString() === userId,
+    const member = (project.members || []).find(
+      (m: any) => m.user === userId,
     );
 
     if (!member || member.role === 'viewer') {
@@ -177,19 +178,20 @@ export class ProjectsService {
 
     // Create checkpoint with current state
     const checkpoint = {
-      _id: new Types.ObjectId(),
+      id: uuidv4(),
       name: createCheckpointDto.name,
       description: createCheckpointDto.description,
       mode: project.currentMode,
       dataPool: JSON.parse(JSON.stringify(project.dataPool)),
       knowledgeGraph: JSON.parse(JSON.stringify(project.knowledgeGraph)),
       coScientistSteps: JSON.parse(JSON.stringify(project.coScientistSteps)),
-      createdBy: new Types.ObjectId(userId),
-      createdAt: new Date(),
+      createdBy: userId,
+      createdAt: new Date().toISOString(),
     };
 
+    project.checkpoints = project.checkpoints || [];
     project.checkpoints.push(checkpoint as any);
-    await project.save();
+    await this.projectRepo.save(project);
 
     return this.findById(projectId, userId);
   }
@@ -198,16 +200,16 @@ export class ProjectsService {
     projectId: string,
     checkpointId: string,
     userId: string,
-  ): Promise<ProjectDocument> {
-    const project = await this.projectModel.findById(projectId).exec();
+  ): Promise<Project> {
+    const project = await this.projectRepo.findOne({ where: { id: projectId } });
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
     // Check access
-    const member = project.members.find(
-      (m) => m.user.toString() === userId,
+    const member = (project.members || []).find(
+      (m: any) => m.user === userId,
     );
 
     if (!member || member.role === 'viewer') {
@@ -215,37 +217,37 @@ export class ProjectsService {
     }
 
     // Find checkpoint
-    const checkpoint = project.checkpoints.find(
-      (cp) => cp._id.toString() === checkpointId,
-    );
+    const checkpoint = (project.checkpoints || []).find(
+      (cp: any) => cp.id === checkpointId,
+    ) as CheckpointPayload | undefined;
 
     if (!checkpoint) {
       throw new NotFoundException('Checkpoint not found');
     }
 
     // Restore state from checkpoint
-    project.currentMode = checkpoint.mode;
-    project.dataPool = checkpoint.dataPool;
-    project.knowledgeGraph = checkpoint.knowledgeGraph;
-    project.coScientistSteps = checkpoint.coScientistSteps;
+    project.currentMode = checkpoint.mode ?? project.currentMode;
+    project.dataPool = checkpoint.dataPool ?? [];
+    project.knowledgeGraph = checkpoint.knowledgeGraph ?? {};
+    project.coScientistSteps = checkpoint.coScientistSteps ?? [];
 
-    await project.save();
+    await this.projectRepo.save(project);
 
     return this.findById(projectId, userId);
   }
 
   async delete(id: string, userId: string): Promise<void> {
-    const project = await this.projectModel.findById(id).exec();
+    const project = await this.projectRepo.findOne({ where: { id } });
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
     // Only owner can delete
-    if (project.owner.toString() !== userId) {
+    if (project.ownerId !== userId) {
       throw new ForbiddenException('Only the project owner can delete the project');
     }
 
-    await this.projectModel.findByIdAndDelete(id).exec();
+    await this.projectRepo.delete({ id });
   }
 }

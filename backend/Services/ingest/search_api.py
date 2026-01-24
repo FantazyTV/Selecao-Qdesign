@@ -15,6 +15,8 @@ from pydantic import BaseModel
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 import torch
+from Bio import pairwise2
+from Bio.PDB import PDBParser
 import requests
 
 from esm.models.esmc import ESMC
@@ -26,10 +28,12 @@ QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 PG_DSN = os.getenv("PG_DSN", "postgresql://qdesign:qdesign@localhost:5432/qdesign")
 COLLECTION = os.getenv("QDRANT_COLLECTION", "petase_sequences_esmc_esmc_300m")
 TEXT_COLLECTION = os.getenv("QDRANT_TEXT_COLLECTION", "petase_text_gemini")
+STRUCTURE_COLLECTION = os.getenv("QDRANT_STRUCTURE_COLLECTION", "petase_structures_hist_v1")
 MODEL_NAME = os.getenv("ESMC_MODEL", "esmc_300m")
 DEVICE = os.getenv("EMBED_DEVICE", "cpu")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_EMBED_MODEL = os.getenv("GEMINI_EMBED_MODEL", "gemini-embedding-001")
+DATA_DIR = os.getenv("DATA_DIR", "/home/fantazy/qdesign/Data")
 
 app = FastAPI(title="QDesign Search API", version="0.1.0")
 
@@ -41,6 +45,8 @@ class SearchRequest(BaseModel):
     text_query: Optional[str] = None
     alpha: float = 0.7
     beta: float = 0.3
+    gamma: float = 0.2
+    use_structure: bool = True
     include_mutations: bool = False
 
 
@@ -80,6 +86,55 @@ def load_sequence_and_chain(pdb_id: str) -> Optional[Tuple[str, str]]:
             (pdb_id.lower(),),
         ).fetchone()
     return (row[0], row[1]) if row else None
+
+
+def find_pdb_file(pdb_id: str) -> Optional[str]:
+    candidates = [
+        f"{pdb_id.lower()}.pdb",
+        f"{pdb_id.lower()}.pdb.gz",
+        f"{pdb_id.upper()}.pdb",
+        f"{pdb_id.upper()}.pdb.gz",
+    ]
+    for name in candidates:
+        path = os.path.join(DATA_DIR, name)
+        if os.path.exists(path):
+            return path
+    return None
+
+
+def structure_histogram_vector(pdb_path: str, bins: int = 30, max_distance: float = 30.0) -> List[float]:
+    parser = PDBParser(QUIET=True)
+    if pdb_path.endswith(".gz"):
+        import gzip
+
+        with gzip.open(pdb_path, "rt") as handle:
+            structure = parser.get_structure("query", handle)
+    else:
+        structure = parser.get_structure("query", pdb_path)
+
+    coords = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                if "CA" in residue:
+                    coords.append(residue["CA"].coord)
+            if coords:
+                break
+        if coords:
+            break
+    if len(coords) < 2:
+        return [0.0] * (bins + 2)
+    coords = torch.tensor(coords, dtype=torch.float32)
+    diffs = coords.unsqueeze(1) - coords.unsqueeze(0)
+    dists = torch.sqrt((diffs**2).sum(dim=-1))
+    triu = torch.triu(dists, diagonal=1)
+    values = triu[triu > 0]
+    hist = torch.histc(values, bins=bins, min=0.0, max=max_distance)
+    hist = hist / (hist.sum() + 1e-8)
+    mean_dist = (values.mean() / max_distance).view(1)
+    length = torch.tensor([coords.shape[0] / 1000.0])
+    vec = torch.cat([hist, mean_dist, length])
+    return vec.cpu().numpy().tolist()
 
 
 def build_model():
@@ -125,16 +180,22 @@ def embed_text_gemini(text: str) -> List[float]:
 
 def propose_mutations(query_seq: str, neighbor_seq: str, neighbor_id: str) -> List[MutationSuggestion]:
     suggestions: List[MutationSuggestion] = []
-    length = min(len(query_seq), len(neighbor_seq))
-    for i in range(length):
-        if query_seq[i] != neighbor_seq[i]:
+    aln = pairwise2.align.globalxx(query_seq, neighbor_seq, one_alignment_only=True)
+    if not aln:
+        return suggestions
+    aligned_q, aligned_n, *_ = aln[0]
+    pos = 0
+    for q_res, n_res in zip(aligned_q, aligned_n):
+        if q_res != "-":
+            pos += 1
+        if q_res != n_res and q_res != "-" and n_res != "-":
             suggestions.append(
                 MutationSuggestion(
                     pdb_id=neighbor_id,
-                    mutation=f"{query_seq[i]}{i+1}{neighbor_seq[i]}",
-                    position=i + 1,
-                    from_residue=query_seq[i],
-                    to_residue=neighbor_seq[i],
+                    mutation=f"{q_res}{pos}{n_res}",
+                    position=pos,
+                    from_residue=q_res,
+                    to_residue=n_res,
                 )
             )
         if len(suggestions) >= 3:
@@ -207,7 +268,16 @@ def search_hybrid(req: SearchRequest):
 
     text_vector = None
     if req.text_query:
-        text_vector = embed_text_gemini(req.text_query)
+        try:
+            text_vector = embed_text_gemini(req.text_query)
+        except Exception:
+            text_vector = None
+
+    structure_vector = None
+    if req.use_structure and req.pdb_id:
+        pdb_path = find_pdb_file(req.pdb_id)
+        if pdb_path:
+            structure_vector = structure_histogram_vector(pdb_path)
 
     scores: Dict[str, float] = {}
     payloads: Dict[str, Dict] = {}
@@ -239,6 +309,20 @@ def search_hybrid(req: SearchRequest):
                 continue
             payloads.setdefault(pid, p.payload or {})
             scores[pid] = scores.get(pid, 0.0) + req.beta * (p.score / max_score)
+
+    if structure_vector is not None:
+        struct_res = qdrant.query_points(
+            collection_name=STRUCTURE_COLLECTION,
+            query=structure_vector,
+            limit=req.top_k,
+        )
+        max_score = max((p.score for p in struct_res.points), default=1.0)
+        for p in struct_res.points:
+            pid = (p.payload or {}).get("pdb_id")
+            if not pid:
+                continue
+            payloads.setdefault(pid, p.payload or {})
+            scores[pid] = scores.get(pid, 0.0) + req.gamma * (p.score / max_score)
 
     ranked = sorted(scores.items(), key=lambda item: item[1], reverse=True)[: req.top_k]
 
