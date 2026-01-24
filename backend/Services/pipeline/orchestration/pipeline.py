@@ -162,7 +162,7 @@ class QDesignPipeline:
                     data_type=record.data_type,
                     source=record.source,
                     collection=record.collection,
-                    raw_content=record.raw_content,
+                    raw_content=ingested.raw_content,  # Use raw_content from ingested record (PIL Image for images)
                     content=ingested.content,
                     metadata=record.metadata or {}
                 )
@@ -238,7 +238,12 @@ class QDesignPipeline:
             for enricher_name, enricher in self.enrichers.items():
                 if enricher.is_applicable(record.data_type):
                     try:
-                        content = record.normalized_content or record.content
+                        # For images, use raw_content (PIL Image); for others use normalized/text content
+                        if record.data_type == "image" and record.raw_content is not None:
+                            content = record.raw_content
+                        else:
+                            content = record.normalized_content or record.content
+                        
                         enriched_metadata = enricher.enrich(
                             content,
                             record.metadata,
