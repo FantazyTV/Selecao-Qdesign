@@ -246,12 +246,23 @@ class FastembedImageEmbedder(BaseEmbedder):
         try:
             from PIL import Image
             import os
+            from pathlib import Path
             
-            if not os.path.exists(image_path):
-                logger.warning(f"Image not found: {image_path}")
+            # Try to resolve the path - handle both absolute and relative paths
+            path = Path(image_path)
+            if not path.is_absolute():
+                # Try relative to current directory first
+                if not path.exists():
+                    # Try relative to backend/Services directory
+                    alt_path = Path(__file__).parent.parent.parent / image_path
+                    if alt_path.exists():
+                        path = alt_path
+            
+            if not path.exists():
+                logger.warning(f"Image not found: {image_path} (resolved to {path})")
                 return np.zeros(self.dimension)
             
-            img = Image.open(image_path).convert('RGB')
+            img = Image.open(str(path)).convert('RGB')
             
             # Extract multiple types of features
             features = []

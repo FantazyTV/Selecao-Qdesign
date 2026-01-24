@@ -170,6 +170,8 @@ class QDesignPipeline:
                 if ingested.error:
                     p_record.error = ingested.error
                 else:
+                    # Merge ingested metadata into pipeline record metadata
+                    p_record.metadata.update(ingested.metadata)
                     p_record.metadata.update({
                         "file_size": ingested.file_size,
                         "content_length": ingested.content_length

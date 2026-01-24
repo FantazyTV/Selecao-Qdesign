@@ -80,6 +80,7 @@ class ImageIngester(BaseIngester):
                     "width": width,
                     "height": height,
                     "mode": mode,
+                    "image_path": source,
                     "exif": exif_data if exif_data else None
                 }
             )
