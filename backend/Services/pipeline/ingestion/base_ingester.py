@@ -21,6 +21,9 @@ class IngestedRecord:
     content: str  # Extracted/parsed content
     normalized_content: Optional[str] = None
     
+    # Raw content (for images: PIL Image object, for others: original file content)
+    raw_content: Optional[Any] = None
+    
     # Metadata from ingestion
     metadata: Dict[str, Any] = field(default_factory=dict)
     

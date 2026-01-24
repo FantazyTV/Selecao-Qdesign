@@ -75,6 +75,7 @@ class ImageIngester(BaseIngester):
                 file_path=source,
                 file_size=file_size,
                 content_length=file_size,  # Use file size for images
+                raw_content=img,  # Store PIL Image object for enrichment
                 metadata={
                     "format": format_type,
                     "width": width,
