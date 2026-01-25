@@ -182,7 +182,7 @@ class QdrantClient:
         score_threshold: Optional[float] = None
     ) -> List[Dict[str, Any]]:
         """
-        Search for similar vectors
+        Search for similar vectors using query API
         
         Args:
             collection_name: Collection name
@@ -197,18 +197,28 @@ class QdrantClient:
             if isinstance(vector, np.ndarray):
                 vector = vector.tolist()
             
-            results = self.client.search(
-                collection_name=collection_name,
-                query_vector=vector,
-                limit=limit,
-                score_threshold=score_threshold
-            )
+            # Use query API (modern Qdrant client)
+            try:
+                results = self.client.query_points(
+                    collection_name=collection_name,
+                    query=vector,
+                    limit=limit,
+                    score_threshold=score_threshold
+                ).points
+            except:
+                # Fallback to older search API if query_points doesn't exist
+                results = self.client.search(
+                    collection_name=collection_name,
+                    query_vector=vector,
+                    limit=limit,
+                    score_threshold=score_threshold
+                )
             
             return [
                 {
                     "id": str(r.id),
-                    "score": r.score,
-                    "metadata": r.payload
+                    "score": r.score if hasattr(r, 'score') else 0,
+                    "metadata": r.payload if hasattr(r, 'payload') else {}
                 }
                 for r in results
             ]

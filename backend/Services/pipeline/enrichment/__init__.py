@@ -6,6 +6,7 @@ from .base_enricher import BaseEnricher
 from .text_enricher import TextEnricher
 from .protein_enricher import SequenceEnricher, StructureEnricher
 from .image_enricher import ImageEnricher
+from .alphafold_enricher import AlphaFoldEnricher
 
 __all__ = [
     "BaseEnricher",
@@ -13,4 +14,5 @@ __all__ = [
     "SequenceEnricher",
     "StructureEnricher",
     "ImageEnricher",
+    "AlphaFoldEnricher",
 ]

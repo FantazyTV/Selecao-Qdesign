@@ -15,6 +15,7 @@ class CollectorConfig:
     arxiv_api_url: str = "http://export.arxiv.org/api/query"
     biorxiv_api_url: str = "https://api.biorxiv.org/details"
     pdb_api_url: str = "https://data.rcsb.org/rest/v1"
+    alphafold_api_url: str = "https://alphafold.ebi.ac.uk/api"
     request_timeout: int = 30
     max_retries: int = 3
 
@@ -77,6 +78,7 @@ class Config:
             arxiv_api_url=os.getenv("ARXIV_API_URL", "http://export.arxiv.org/api/query"),
             biorxiv_api_url=os.getenv("BIORXIV_API_URL", "https://api.biorxiv.org/details"),
             pdb_api_url=os.getenv("PDB_API_URL", "https://data.rcsb.org/rest/v1"),
+            alphafold_api_url=os.getenv("ALPHAFOLD_API_URL", "https://alphafold.ebi.ac.uk/api"),
             request_timeout=int(os.getenv("REQUEST_TIMEOUT", "30")),
             max_retries=int(os.getenv("MAX_RETRIES", "3")),
         )
@@ -149,6 +151,10 @@ class Config:
     @property
     def pdb_api_url(self) -> str:
         return self.collector.pdb_api_url
+    
+    @property
+    def alphafold_api_url(self) -> str:
+        return self.collector.alphafold_api_url
     
     @property
     def request_timeout(self) -> int:
