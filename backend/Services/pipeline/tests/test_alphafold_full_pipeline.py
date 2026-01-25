@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from pipeline.collectors.alphafold_collector import AlphaFoldCollector
 from pipeline.enrichment.alphafold_enricher import AlphaFoldEnricher
-from pipeline.embedding.fastembed_embedder import FastembedTextEmbedder
+from pipeline.embedding.gemini_embedder import GeminiEmbedder
 from pipeline.storage.qdrant_client import QdrantClient
 from pipeline.logger import get_logger
 from pipeline.config import get_config
@@ -30,7 +30,7 @@ class FullPipelineTest:
         self.config = get_config()
         self.collector = AlphaFoldCollector()
         self.enricher = AlphaFoldEnricher()
-        self.embedder = FastembedTextEmbedder()
+        self.embedder = GeminiEmbedder()
         self.qdrant = QdrantClient()
         self.results = {
             "timestamp": datetime.utcnow().isoformat(),

@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from pipeline.collectors.arxiv_collector import ArxivCollector
 from pipeline.normalization.text_normalizer import TextNormalizer
 from pipeline.enrichment.text_enricher import TextEnricher
-from pipeline.embedding.fastembed_embedder import FastembedTextEmbedder
+from pipeline.embedding.gemini_embedder import GeminiEmbedder
 from pipeline.storage.qdrant_client import QdrantClient
 from pipeline.logger import get_logger
 from pipeline.config import get_config
@@ -41,7 +41,7 @@ def main():
     if not args.skip_embed:
         try:
             logger.info("Initializing embedder (this may take a moment for first run)...")
-            embedder = FastembedTextEmbedder()
+            embedder = GeminiEmbedder()
             logger.info(" Embedder initialized")
         except Exception as e:
             logger.warning(f"Could not initialize embedder: {e}")

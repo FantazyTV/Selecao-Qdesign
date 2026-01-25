@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path.cwd()))
 from pipeline.orchestration.pipeline import QDesignPipeline
 from pipeline.ingestion.image_ingester import ImageIngester
 from pipeline.enrichment.image_enricher import ImageEnricher
-from pipeline.embedding.fastembed_embedder import FastembedImageEmbedder
+from pipeline.embedding.gemini_embedder import GeminiEmbedder
 from pipeline.collectors.base_collector import BaseCollector, CollectorRecord
 from qdrant_client import QdrantClient
 
@@ -135,7 +135,7 @@ def test_image_pipeline():
     pipeline.register_collector("local", LocalImageCollector("image"))
     pipeline.register_ingester("image", ImageIngester())
     pipeline.register_enricher("image", ImageEnricher())
-    pipeline.register_embedder("image", FastembedImageEmbedder())
+    pipeline.register_embedder("image", GeminiEmbedder())
     
     start = datetime.now()
     collected = pipeline.collect("local", "../../Data", recursive=True)

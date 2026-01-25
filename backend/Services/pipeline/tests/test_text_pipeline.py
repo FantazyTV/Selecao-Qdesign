@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from pipeline.orchestration.pipeline import QDesignPipeline, CollectorRecord
 from pipeline.collectors.base_collector import BaseCollector
 from pipeline.ingestion.text_ingester import TextIngester
-from pipeline.embedding.fastembed_embedder import FastembedTextEmbedder
+from pipeline.embedding.gemini_embedder import GeminiEmbedder
 from qdrant_client import QdrantClient
 
 
@@ -157,7 +157,7 @@ def test_text_pipeline():
     pipeline = QDesignPipeline(name="text_pipeline")
     pipeline.register_collector("local", LocalTextCollector("text"))
     pipeline.register_ingester("text", TextIngester())
-    pipeline.register_embedder("text", FastembedTextEmbedder())
+    pipeline.register_embedder("text", GeminiEmbedder())
     
     start = datetime.now()
     collected = pipeline.collect("local", "../../Data", recursive=True)

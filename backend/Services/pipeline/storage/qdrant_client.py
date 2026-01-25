@@ -197,34 +197,26 @@ class QdrantClient:
             if isinstance(vector, np.ndarray):
                 vector = vector.tolist()
             
-            # Use query API (modern Qdrant client)
-            try:
-                results = self.client.query_points(
-                    collection_name=collection_name,
-                    query=vector,
-                    limit=limit,
-                    score_threshold=score_threshold
-                ).points
-            except:
-                # Fallback to older search API if query_points doesn't exist
-                results = self.client.search(
-                    collection_name=collection_name,
-                    query_vector=vector,
-                    limit=limit,
-                    score_threshold=score_threshold
-                )
+            # Use query_points API (standard in modern Qdrant)
+            result_obj = self.client.query_points(
+                collection_name=collection_name,
+                query=vector,
+                limit=limit,
+                score_threshold=score_threshold
+            )
+            results = result_obj.points if hasattr(result_obj, 'points') else result_obj
             
             return [
                 {
                     "id": str(r.id),
-                    "score": r.score if hasattr(r, 'score') else 0,
-                    "metadata": r.payload if hasattr(r, 'payload') else {}
+                    "score": float(r.score) if hasattr(r, 'score') else 0.0,
+                    "metadata": dict(r.payload) if hasattr(r, 'payload') else {}
                 }
                 for r in results
             ]
             
         except Exception as e:
-            logger.error(f"Error searching collection: {e}")
+            logger.error(f"Error searching collection '{collection_name}': {type(e).__name__}: {e}")
             return []
     
     def get_stats(self, collection_name: str) -> Dict[str, Any]:
@@ -239,11 +231,11 @@ class QdrantClient:
         """
         try:
             collection_info = self.client.get_collection(collection_name)
+            # Handle different Qdrant API versions
             return {
                 "name": collection_name,
-                "points_count": collection_info.points_count,
-                "vectors_count": collection_info.vectors_count,
-                "indexed_vectors_count": collection_info.indexed_vectors_count
+                "points_count": getattr(collection_info, 'points_count', 0),
+                "status": str(getattr(collection_info, 'status', 'unknown'))
             }
         except Exception as e:
             logger.error(f"Error getting collection stats: {e}")

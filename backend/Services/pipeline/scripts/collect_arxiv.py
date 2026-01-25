@@ -15,7 +15,7 @@ from pipeline.collectors.arxiv_collector import ArxivCollector
 from pipeline.ingestion.text_ingester import TextIngester, PDFIngester
 from pipeline.normalization.text_normalizer import TextNormalizer
 from pipeline.enrichment.text_enricher import TextEnricher
-from pipeline.embedding.fastembed_embedder import FastembedTextEmbedder
+from pipeline.embedding.gemini_embedder import GeminiEmbedder
 from pipeline.logger import get_logger
 
 logger = get_logger(__name__)
@@ -42,7 +42,7 @@ def main():
     
     if not args.skip_embed:
         try:
-            pipeline.register_embedder("text", FastembedTextEmbedder())
+            pipeline.register_embedder("text", GeminiEmbedder())
         except Exception as e:
             logger.warning(f"Could not initialize embedder: {e}")
     

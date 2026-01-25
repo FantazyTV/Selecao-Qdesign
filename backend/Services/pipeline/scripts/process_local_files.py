@@ -18,8 +18,7 @@ from pipeline.normalization.text_normalizer import TextNormalizer
 from pipeline.normalization.protein_normalizer import SequenceNormalizer, StructureNormalizer
 from pipeline.enrichment.text_enricher import TextEnricher
 from pipeline.enrichment.protein_enricher import SequenceEnricher, StructureEnricher
-from pipeline.embedding.fastembed_embedder import FastembedTextEmbedder, FastembedImageEmbedder
-from pipeline.embedding.esm_embedder import ESMSequenceEmbedder, ESMStructureEmbedder
+from pipeline.embedding.gemini_embedder import GeminiEmbedder
 from pipeline.collectors.base_collector import BaseCollector, CollectorRecord
 from pipeline.logger import get_logger
 from datetime import datetime
@@ -99,9 +98,10 @@ def main():
         pipeline.register_enricher("text", TextEnricher())
         if not args.skip_embed:
             try:
-                pipeline.register_embedder("text", FastembedTextEmbedder())
+                pipeline.register_embedder("text", GeminiEmbedder())
+                logger.info("✓ Using GeminiEmbedder for text (3072-dim)")
             except Exception as e:
-                logger.warning(f"Could not load text embedder: {e}")
+                logger.warning(f"Could not load Gemini embedder for text: {e}")
     
     elif args.data_type == "sequence":
         pipeline.register_ingester("sequence", SequenceIngester())
@@ -109,9 +109,10 @@ def main():
         pipeline.register_enricher("sequence", SequenceEnricher())
         if not args.skip_embed:
             try:
-                pipeline.register_embedder("sequence", ESMSequenceEmbedder())
+                pipeline.register_embedder("sequence", GeminiEmbedder())
+                logger.info("✓ Using GeminiEmbedder for protein sequences (3072-dim, unified search)")
             except Exception as e:
-                logger.warning(f"Could not load sequence embedder: {e}")
+                logger.warning(f"Could not load Gemini embedder for sequences: {e}")
     
     elif args.data_type == "structure":
         pipeline.register_ingester("structure", StructureIngester())
@@ -119,17 +120,19 @@ def main():
         pipeline.register_enricher("structure", StructureEnricher())
         if not args.skip_embed:
             try:
-                pipeline.register_embedder("structure", ESMStructureEmbedder())
+                pipeline.register_embedder("structure", GeminiEmbedder())
+                logger.info("✓ Using GeminiEmbedder for protein structures (3072-dim, unified search)")
             except Exception as e:
-                logger.warning(f"Could not load structure embedder: {e}")
+                logger.warning(f"Could not load Gemini embedder for structures: {e}")
     
     elif args.data_type == "image":
         pipeline.register_ingester("image", ImageIngester())
         if not args.skip_embed:
             try:
-                pipeline.register_embedder("image", FastembedImageEmbedder())
+                pipeline.register_embedder("image", GeminiEmbedder())
+                logger.info("✓ Using GeminiEmbedder for images (3072-dim)")
             except Exception as e:
-                logger.warning(f"Could not load image embedder: {e}")
+                logger.warning(f"Could not load Gemini embedder for images: {e}")
     
     # Run pipeline
     logger.info(f"Processing {args.data_type} files from {args.input_dir}")
@@ -138,7 +141,6 @@ def main():
     logger.info(f"Collected {len(collected)} files")
     
     pipeline.ingest(collected)
-    
     if args.data_type != "image":
         pipeline.normalize()
         pipeline.enrich()
