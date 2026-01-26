@@ -407,7 +407,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        {/* <div className="mt-6 grid gap-6 lg:grid-cols-3">
           <Card className="border-gray-800 bg-gray-900 lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-green-100">Hybrid Search (Sequence + Text + Structure)</CardTitle>
@@ -470,7 +470,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* Projects Grid */}
         <div className="mt-8">

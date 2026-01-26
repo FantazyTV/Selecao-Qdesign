@@ -70,7 +70,11 @@ export class ProjectsService {
 
     if (!project) throw new NotFoundException('Project not found');
 
-    const hasAccess = project.members.some(m => m.user.toString() === userId);
+    const hasAccess = project.members.some(m => {
+      // Handle both populated and unpopulated user references
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
     if (!hasAccess) throw new ForbiddenException('Access denied');
 
     return project;
@@ -80,7 +84,11 @@ export class ProjectsService {
     const project = await this.projectModel.findById(id).exec();
     if (!project) throw new NotFoundException('Project not found');
 
-    const member = project.members.find(m => m.user.toString() === userId);
+    const member = project.members.find(m => {
+      // Handle both populated and unpopulated user references
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
     if (!member || member.role === 'viewer') throw new ForbiddenException('Access denied');
 
     const allowed = [
@@ -110,7 +118,11 @@ export class ProjectsService {
     const project = await this.projectModel.findOne({ hash: dto.hash.toUpperCase() }).exec();
     if (!project) throw new NotFoundException('Project not found');
 
-    const exists = project.members.some(m => m.user.toString() === userId);
+    const exists = project.members.some(m => {
+      // Handle both populated and unpopulated user references
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
     if (exists) throw new ConflictException('Already a member');
 
     project.members.push({
@@ -127,7 +139,11 @@ export class ProjectsService {
     const project = await this.projectModel.findById(projectId).exec();
     if (!project) throw new NotFoundException('Project not found');
 
-    const member = project.members.find(m => m.user.toString() === userId);
+    const member = project.members.find(m => {
+      // Handle both populated and unpopulated user references
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
     if (!member || member.role === 'viewer') throw new ForbiddenException('Access denied');
 
     project.checkpoints.push({
@@ -150,7 +166,11 @@ export class ProjectsService {
     const project = await this.projectModel.findById(projectId).exec();
     if (!project) throw new NotFoundException('Project not found');
 
-    const member = project.members.find(m => m.user.toString() === userId);
+    const member = project.members.find(m => {
+      // Handle both populated and unpopulated user references
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
     if (!member || member.role === 'viewer') throw new ForbiddenException('Access denied');
 
     const checkpoint = project.checkpoints.find(cp => cp._id.toString() === checkpointId);
@@ -169,7 +189,11 @@ export class ProjectsService {
     const project = await this.projectModel.findById(projectId).exec();
     if (!project) throw new NotFoundException('Project not found');
 
-    const member = project.members.find(m => m.user.toString() === userId);
+    const member = project.members.find(m => {
+      // Handle both populated and unpopulated user references
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
     if (!member) throw new ForbiddenException('Access denied');
 
     const item = project.dataPool.find(i => i._id.toString() === itemId);
@@ -196,7 +220,9 @@ export class ProjectsService {
     const idx = item.comments.findIndex(c => c._id.toString() === commentId);
     if (idx === -1) throw new NotFoundException('Comment not found');
 
-    if (item.comments[idx].author.toString() !== userId) throw new ForbiddenException();
+    // Handle both populated and unpopulated author references
+    const authorId = item.comments[idx].author._id ? item.comments[idx].author._id.toString() : item.comments[idx].author.toString();
+    if (authorId !== userId) throw new ForbiddenException();
 
     item.comments.splice(idx, 1);
     await project.save();
@@ -208,7 +234,9 @@ export class ProjectsService {
     const project = await this.projectModel.findById(id).exec();
     if (!project) throw new NotFoundException('Project not found');
 
-    if (project.owner.toString() !== userId) throw new ForbiddenException();
+    // Handle both populated and unpopulated owner references
+    const ownerId = project.owner._id ? project.owner._id.toString() : project.owner.toString();
+    if (ownerId !== userId) throw new ForbiddenException();
     await project.deleteOne();
   }
 }

@@ -42,6 +42,7 @@ export class ProjectsController {
     @CurrentUser() user: CurrentUserData,
   ) {
     const project = await this.projectsService.findById(id, user.userId);
+    // console.log(project);
     return { project };
   }
 

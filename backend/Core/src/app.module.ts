@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -13,13 +13,10 @@ import { ProjectsModule } from './projects/projects.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRootAsync({
+    MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get<string>('POSTGRES_URL'),
-        autoLoadEntities: true,
-        synchronize: true,
+        uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/qdesign',
       }),
       inject: [ConfigService],
     }),
