@@ -61,6 +61,7 @@ import { KnowledgeGraphView } from "@/components/workspace/KnowledgeGraph";
 import { CoScientistSidebar } from "@/components/workspace/CoScientistSidebar";
 import {
   FloatingWindow,
+  TextViewer,
   PDBViewer,
   PDFViewer,
   ImageViewer,
@@ -71,7 +72,7 @@ type ProjectMode = "pool" | "retrieval" | "coscientist";
 
 interface ViewerWindow {
   id: string;
-  type: "pdb" | "pdf" | "image" | "sequence";
+  type: "pdb" | "pdf" | "image" | "sequence" | "text";
   title: string;
   data: string;
   position: { x: number; y: number };
@@ -81,6 +82,7 @@ interface ViewerWindow {
 
 async function fetchProject(id: string) {
   const response = await projectsApi.get(id);
+  console.log(response);
   return response.project;
 }
 
@@ -365,6 +367,7 @@ export default function ProjectWorkspace({
     joinProject, 
     leaveProject, 
     isConnected,
+    emit,
     emitPoolAdd,
     emitPoolRemove,
     emitGraphNodeAdd,
@@ -473,40 +476,56 @@ export default function ProjectWorkspace({
     setViewers([...viewers, newViewer]);
   };
 
-  const closeViewer = (id: string) => {
+  const closeViewer = useCallback((id: string) => {
     setViewers(viewers.filter((v) => v.id !== id));
-  };
+  }, [viewers]);
 
-  const updateViewerPosition = (id: string, position: { x: number; y: number }) => {
+  const updateViewerPosition = useCallback((id: string, position: { x: number; y: number }) => {
     setViewers(viewers.map((v) => (v.id === id ? { ...v, position } : v)));
-  };
+  }, [viewers]);
 
-  const updateViewerSize = (id: string, size: { width: number; height: number }) => {
+  const updateViewerSize = useCallback((id: string, size: { width: number; height: number }) => {
     setViewers(viewers.map((v) => (v.id === id ? { ...v, size } : v)));
-  };
+  }, [viewers]);
 
-  const minimizeViewer = (id: string) => {
+  const minimizeViewer = useCallback((id: string) => {
     setViewers(viewers.map((v) => (v.id === id ? { ...v, minimized: true } : v)));
-  };
+  }, [viewers]);
 
-  const restoreViewer = (id: string) => {
+  const restoreViewer = useCallback((id: string) => {
     setViewers(viewers.map((v) => (v.id === id ? { ...v, minimized: false } : v)));
-  };
+  }, [viewers]);
 
   // Data pool handlers
   const handleAddPoolItem = async (item: Omit<DataPoolItem, "_id" | "addedBy" | "addedAt">) => {
+    console.log('[DEBUG] handleAddPoolItem called with:', item);
+    console.log('[DEBUG] Item content length:', item.content?.length);
+    
     const newItem: DataPoolItem = {
       ...item,
       _id: uuidv4(),
       addedBy: user?.id || "",
       addedAt: new Date().toISOString(),
     };
+    
+    console.log('[DEBUG] Created new item:', { ...newItem, content: newItem.content?.substring(0, 100) + '...' });
+    
     const updatedPool = [...(project?.dataPool || []), newItem];
-    updateMutation.mutate({ dataPool: updatedPool });
-    // Emit socket event for real-time sync
-    console.log('[DEBUG] Frontend: About to emit pool:add with:', { projectId, newItem });
-    emitPoolAdd(projectId, newItem);
-    console.log('[DEBUG] Frontend: Emitted pool:add');
+    console.log('[DEBUG] Updated pool length:', updatedPool.length);
+    
+    try {
+      console.log('[DEBUG] Calling updateMutation.mutate');
+      await updateMutation.mutateAsync({ dataPool: updatedPool });
+      console.log('[DEBUG] updateMutation completed successfully');
+      
+      // Emit socket event for real-time sync
+      console.log('[DEBUG] Frontend: About to emit pool:add with:', { projectId, newItem });
+      emitPoolAdd(projectId, newItem);
+      console.log('[DEBUG] Frontend: Emitted pool:add');
+    } catch (error) {
+      console.error('[DEBUG] updateMutation failed:', error);
+      throw error;
+    }
   };
 
   const handleRemovePoolItem = async (id: string) => {
@@ -724,7 +743,7 @@ export default function ProjectWorkspace({
             {/* Team Avatars */}
             <div className="ml-2 hidden md:flex -space-x-2">
               {(project.members || []).slice(0, 3).map((member: any, idx: number) => (
-                <Tooltip key={member.userId}>
+                <Tooltip key={member.user.id}>
                   <TooltipTrigger asChild>
                     <Avatar className="h-8 w-8 border-2 border-gray-800">
                       <AvatarFallback
@@ -735,11 +754,11 @@ export default function ProjectWorkspace({
                           idx === 2 && "bg-teal-950 text-teal-400"
                         )}
                       >
-                        {member.name?.charAt(0) || "U"}
+                        {member.user.name?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </TooltipTrigger>
-                  <TooltipContent>{member.name || "User"}</TooltipContent>
+                  <TooltipContent>{member.user.name || "User"}</TooltipContent>
                 </Tooltip>
               ))}
             </div>
@@ -765,7 +784,7 @@ export default function ProjectWorkspace({
         </header>
 
         {/* Main Content */}
-        <main className="relative flex-1 overflow-hidden">
+        <main className="relative flex-1 overflow-auto">
           {/* Data Pool Mode */}
           {mode === "pool" && (
             <DataPool
@@ -773,6 +792,9 @@ export default function ProjectWorkspace({
               onAddItem={handleAddPoolItem}
               onRemoveItem={handleRemovePoolItem}
               onViewItem={openViewer}
+              projectId={projectId}
+              project={project}
+              onUpdateProject={async (data) => updateMutation.mutate(data)}
             />
           )}
 
@@ -884,6 +906,9 @@ export default function ProjectWorkspace({
                 )}
                 {viewer.type === "sequence" && (
                   <SequenceViewer content={viewer.data} />
+                )}
+                {viewer.type === "text" && (
+                  <TextViewer content={viewer.data} />
                 )}
               </FloatingWindow>
             );

@@ -2,6 +2,7 @@ export { FloatingWindow } from "./FloatingWindow";
 export { PDBViewer, PDBViewerPlaceholder } from "./PDBViewer";
 export { ImageViewer, ImageViewerPlaceholder } from "./ImageViewer";
 export { SequenceViewer, SequenceViewerPlaceholder } from "./SequenceViewer";
+export { TextViewer, TextViewerPlaceholder } from "./TextViewer";
 
 // Dynamic import for PDFViewer to avoid SSR issues with PDF.js (DOMMatrix not defined)
 // We cannot import anything from PDFViewer.tsx statically as it triggers the SSR error
