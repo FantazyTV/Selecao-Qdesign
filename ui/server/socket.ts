@@ -142,18 +142,28 @@ io.on("connection", (socket) => {
 
   // Data Pool updates - support new event format
   socket.on("pool:add", (data: { projectId?: string; item?: any; payload?: any }) => {
+    console.log(`[DEBUG] pool:add received:`, data);
     const projectId = data.projectId || currentProjectId;
     const item = data.item || data.payload;
+    console.log(`[DEBUG] Extracted projectId: ${projectId}, item exists: ${!!item}`);
     if (projectId && item) {
+      console.log(`[DEBUG] Broadcasting pool:add to room ${projectId}`);
       socket.to(projectId).emit("pool:add", item);
+    } else {
+      console.log(`[DEBUG] Missing projectId or item, not broadcasting`);
     }
   });
 
   socket.on("pool:remove", (data: { projectId?: string; itemId?: string; payload?: { itemId: string } }) => {
+    console.log(`[DEBUG] pool:remove received:`, data);
     const projectId = data.projectId || currentProjectId;
     const itemId = data.itemId || data.payload?.itemId;
+    console.log(`[DEBUG] Extracted projectId: ${projectId}, itemId: ${itemId}`);
     if (projectId && itemId) {
+      console.log(`[DEBUG] Broadcasting pool:remove to room ${projectId}`);
       socket.to(projectId).emit("pool:remove", { itemId });
+    } else {
+      console.log(`[DEBUG] Missing projectId or itemId, not broadcasting`);
     }
   });
 
