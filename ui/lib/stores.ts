@@ -1,9 +1,29 @@
 "use client";
 
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { persist, createJSONStorage, type StateStorage } from "zustand/middleware";
 import type { User, Project, DataPoolItem, GraphNode, GraphEdge, CoScientistStep, Checkpoint } from "@/lib/types";
 import { authApi, getToken, setToken, removeToken } from "@/lib/api";
+
+const noopStorage: StateStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
+
+const getSafeStorage = (): StateStorage => {
+  if (typeof window === "undefined") return noopStorage;
+  const candidate = window.localStorage as unknown;
+  if (
+    candidate &&
+    typeof (candidate as StateStorage).getItem === "function" &&
+    typeof (candidate as StateStorage).setItem === "function" &&
+    typeof (candidate as StateStorage).removeItem === "function"
+  ) {
+    return candidate as StateStorage;
+  }
+  return noopStorage;
+};
 
 interface AuthState {
   user: User | null;
@@ -105,7 +125,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "qdesign-auth-storage",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(getSafeStorage),
       partialize: (state) => ({ user: state.user }), // Only persist user
       onRehydrateStorage: () => (state, error) => {
         if (error) {

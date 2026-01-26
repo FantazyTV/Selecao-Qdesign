@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto } from './dto';
-import { UserDocument } from '../users/schemas/user.schema';
+import { User } from '../users/entities/user.entity';
 
 export interface JwtPayload {
   sub: string;
@@ -51,7 +51,7 @@ export class AuthService {
 
     return {
       user: {
-        id: user._id.toString(),
+        id: user.id,
         name: user.name,
         email: user.email,
         avatar: user.avatar,
@@ -80,7 +80,7 @@ export class AuthService {
 
     return {
       user: {
-        id: user._id.toString(),
+        id: user.id,
         name: user.name,
         email: user.email,
         avatar: user.avatar,
@@ -89,7 +89,7 @@ export class AuthService {
     };
   }
 
-  async validateUser(payload: JwtPayload): Promise<UserDocument | null> {
+  async validateUser(payload: JwtPayload): Promise<User | null> {
     return this.usersService.findById(payload.sub);
   }
 
@@ -101,7 +101,7 @@ export class AuthService {
 
     return {
       user: {
-        id: user._id.toString(),
+        id: user.id,
         name: user.name,
         email: user.email,
         avatar: user.avatar,
@@ -109,9 +109,9 @@ export class AuthService {
     };
   }
 
-  private generateToken(user: UserDocument): string {
+  private generateToken(user: User): string {
     const payload: JwtPayload = {
-      sub: user._id.toString(),
+      sub: user.id,
       email: user.email,
     };
     return this.jwtService.sign(payload);

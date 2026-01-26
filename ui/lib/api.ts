@@ -1,6 +1,7 @@
 // API client for communicating with the NestJS backend
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const SEARCH_API_URL = process.env.NEXT_PUBLIC_SEARCH_API_URL || 'http://localhost:8000';
 
 // Token management
 const TOKEN_KEY = 'qdesign_token';
@@ -65,6 +66,35 @@ async function request<T>(
   
   return data as T;
 }
+
+// Search API (FastAPI)
+async function searchRequest<T>(endpoint: string, body: unknown): Promise<T> {
+  const response = await fetch(`${SEARCH_API_URL}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new ApiError(response.status, data.detail || 'Search error', data);
+  }
+  return data as T;
+}
+
+export const searchApi = {
+  hybrid: (body: {
+    pdb_id?: string;
+    sequence?: string;
+    text_query?: string;
+    top_k?: number;
+    alpha?: number;
+    beta?: number;
+    gamma?: number;
+    use_structure?: boolean;
+    include_mutations?: boolean;
+  }) => searchRequest<{ results: any[]; mutations?: any[] }>('/search_hybrid', body),
+};
 
 // Auth API
 export const authApi = {
