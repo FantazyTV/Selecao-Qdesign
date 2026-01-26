@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, ConflictException } 
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Project, ProjectDocument } from './schemas/project.schema';
-import { CreateProjectDto, UpdateProjectDto, CreateCheckpointDto, JoinProjectDto } from './dto';
+import { CreateProjectDto, UpdateProjectDto, CreateCheckpointDto, JoinProjectDto, AddCommentDto } from './dto';
 
 @Injectable()
 export class ProjectsService {
@@ -32,6 +32,7 @@ export class ProjectsService {
       })
       .populate('owner', 'name email avatar')
       .populate('members.user', 'name email avatar')
+      .populate('dataPool.comments.author', 'name email')
       .sort({ updatedAt: -1 })
       .exec();
   }
@@ -42,6 +43,7 @@ export class ProjectsService {
       .populate('owner', 'name email avatar')
       .populate('members.user', 'name email avatar')
       .populate('checkpoints.createdBy', 'name email')
+      .populate('dataPool.comments.author', 'name email')
       .exec();
 
     if (!project) {
@@ -85,6 +87,8 @@ export class ProjectsService {
       'name',
       'mainObjective',
       'secondaryObjectives',
+      'constraints',
+      'notes',
       'description',
       'currentMode',
       'dataPool',
@@ -228,6 +232,107 @@ export class ProjectsService {
     project.dataPool = checkpoint.dataPool;
     project.knowledgeGraph = checkpoint.knowledgeGraph;
     project.coScientistSteps = checkpoint.coScientistSteps;
+
+    await project.save();
+
+    return this.findById(projectId, userId);
+  }
+
+  async addComment(
+    projectId: string,
+    itemId: string,
+    addCommentDto: AddCommentDto,
+    userId: string,
+  ): Promise<ProjectDocument> {
+    const project = await this.projectModel.findById(projectId).exec();
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    // Check access
+    const member = project.members.find(
+      (m) => m.user.toString() === userId,
+    );
+
+    if (!member) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    // Find the data pool item
+    const itemIndex = project.dataPool.findIndex(
+      (item) => item._id.toString() === itemId,
+    );
+
+    if (itemIndex === -1) {
+      throw new NotFoundException('Data pool item not found');
+    }
+
+    // Add the comment
+    const comment = {
+      _id: new Types.ObjectId(),
+      text: addCommentDto.text,
+      author: new Types.ObjectId(userId),
+      createdAt: new Date(),
+    };
+
+    if (!project.dataPool[itemIndex].comments) {
+      project.dataPool[itemIndex].comments = [];
+    }
+
+    project.dataPool[itemIndex].comments.push(comment);
+
+    await project.save();
+
+    return this.findById(projectId, userId);
+  }
+
+  async deleteComment(
+    projectId: string,
+    itemId: string,
+    commentId: string,
+    userId: string,
+  ): Promise<ProjectDocument> {
+    const project = await this.projectModel.findById(projectId).exec();
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    // Check access
+    const member = project.members.find(
+      (m) => m.user.toString() === userId,
+    );
+
+    if (!member) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    // Find the data pool item
+    const itemIndex = project.dataPool.findIndex(
+      (item) => item._id.toString() === itemId,
+    );
+
+    if (itemIndex === -1) {
+      throw new NotFoundException('Data pool item not found');
+    }
+
+    // Find and remove the comment
+    const commentIndex = project.dataPool[itemIndex].comments?.findIndex(
+      (comment) => comment._id.toString() === commentId,
+    );
+
+    if (commentIndex === undefined || commentIndex === -1) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    // Check if user owns the comment
+    const comment = project.dataPool[itemIndex].comments[commentIndex];
+    if (comment.author.toString() !== userId) {
+      throw new ForbiddenException('Can only delete your own comments');
+    }
+
+    project.dataPool[itemIndex].comments.splice(commentIndex, 1);
 
     await project.save();
 

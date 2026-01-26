@@ -2,6 +2,22 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
+@Schema({ _id: false })
+export class DataPoolComment {
+  @Prop({ default: () => new Types.ObjectId() })
+  _id: Types.ObjectId;
+
+  @Prop({ required: true })
+  text: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  author: Types.ObjectId;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
+}
+
+export const DataPoolCommentSchema = SchemaFactory.createForClass(DataPoolComment);
 
 @Schema({ _id: false })
 export class DataPoolItem {
@@ -31,6 +47,9 @@ export class DataPoolItem {
 
   @Prop({ default: Date.now })
   addedAt: Date;
+
+  @Prop({ type: [DataPoolCommentSchema], default: [] })
+  comments: DataPoolComment[];
 }
 
 export const DataPoolItemSchema = SchemaFactory.createForClass(DataPoolItem);
@@ -272,6 +291,12 @@ export class Project {
 
   @Prop({ type: [String], default: [] })
   secondaryObjectives: string[];
+
+  @Prop({ type: [String], default: [] })
+  constraints: string[];
+
+  @Prop({ type: [String], default: [] })
+  notes: string[];
 
   @Prop()
   description?: string;
