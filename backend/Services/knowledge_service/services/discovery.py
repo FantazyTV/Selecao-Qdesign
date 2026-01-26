@@ -39,15 +39,15 @@ class DiscoveryService(BaseKnowledgeService):
             self.qdrant = None
 
     def _init_embedder(self):
-        """Initialize Gemini embedder (3072-dim)"""
+        """Initialize text embedder (SentenceTransformer 384-dim)"""
         if self.embedder is not None:
             return
         try:
-            from pipeline.embedding import GeminiEmbedder
-            self.embedder = GeminiEmbedder()
-            self.logger.info("✓ Initialized GeminiEmbedder (3072-dim)")
+            from pipeline.embedding import SentenceTransformerTextEmbedder
+            self.embedder = SentenceTransformerTextEmbedder(model_name="all-MiniLM-L6-v2")
+            self.logger.info("✓ Initialized SentenceTransformer text embedder (384-dim)")
         except Exception as e:
-            self.logger.error(f"✗ GeminiEmbedder failed: {e}")
+            self.logger.error(f"✗ SentenceTransformer failed: {e}")
             self.embedder = None
 
     def discover_resources(

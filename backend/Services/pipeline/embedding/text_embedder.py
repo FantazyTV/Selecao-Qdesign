@@ -1,4 +1,4 @@
-"""Text embedding using sentence-transformers/fastembed"""
+"""Text embedding using SentenceTransformers"""
 
 from typing import List, Dict, Any, Optional
 import numpy as np
@@ -9,28 +9,31 @@ from ..logger import get_logger
 logger = get_logger(__name__)
 
 
-class FastembedTextEmbedder(BaseEmbedder):
-    """Embed text using fastembed or sentence-transformers"""
+class SentenceTransformerTextEmbedder(BaseEmbedder):
+    """Embed text using Sentence Transformers (384-dim)"""
 
-    def __init__(self):
-        """Initialize text embedder"""
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+        """Initialize text embedder with Sentence Transformers
+        
+        Args:
+            model_name: Model name (without 'sentence-transformers/' prefix)
+        """
         config = get_config()
         self.device = config.device
         self.batch_size = config.batch_size
         self.normalize = config.normalize_embeddings
         self.dimension = 384
+        self.model_name = model_name
 
         try:
             from sentence_transformers import SentenceTransformer
-            self.model = SentenceTransformer('all-MiniLM-L6-v2', device=self.device)
-            logger.info("Initialized FastEmbedTextEmbedder with SentenceTransformer")
+            self.model = SentenceTransformer(f'sentence-transformers/{model_name}', device=self.device)
+            logger.info(f"✓ Initialized SentenceTransformer text embedder: {model_name} (384-dim)")
         except ImportError:
-            try:
-                from fastembed import TextEmbedding
-                self.model = TextEmbedding(model_name=config.fastembed_model, device=self.device)
-                logger.info(f"Initialized FastEmbedTextEmbedder with fastembed")
-            except ImportError:
-                raise ImportError("Install sentence-transformers: pip install sentence-transformers")
+            raise ImportError("Install sentence-transformers: pip install sentence-transformers")
+        except Exception as e:
+            logger.error(f"✗ Failed to load SentenceTransformer: {e}")
+            raise
 
     def embed(self, content: str, metadata: Optional[Dict[str, Any]] = None) -> np.ndarray:
         """Embed single text"""
@@ -38,11 +41,7 @@ class FastembedTextEmbedder(BaseEmbedder):
             return np.zeros(self.dimension)
 
         try:
-            if hasattr(self.model, 'encode'):
-                embedding = self.model.encode(content, convert_to_numpy=True)
-            else:
-                embeddings = list(self.model.embed([content]))
-                embedding = embeddings[0]
+            embedding = self.model.encode(content, convert_to_numpy=True)
 
             if self.normalize:
                 embedding = embedding / (np.linalg.norm(embedding) + 1e-8)
@@ -60,13 +59,10 @@ class FastembedTextEmbedder(BaseEmbedder):
             return np.zeros((len(contents), self.dimension))
 
         try:
-            if hasattr(self.model, 'encode'):
-                embeddings = self.model.encode(valid_contents, convert_to_numpy=True, batch_size=self.batch_size)
-            else:
-                embeddings = list(self.model.embed(valid_contents, batch_size=self.batch_size))
+            embeddings = self.model.encode(valid_contents, convert_to_numpy=True, batch_size=self.batch_size)
 
             if self.normalize:
-                embeddings = [e / (np.linalg.norm(e) + 1e-8) for e in embeddings]
+                embeddings = embeddings / (np.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-8)
 
             return np.array(embeddings, dtype=np.float32)
         except Exception as e:

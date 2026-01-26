@@ -15,11 +15,11 @@ def search_collection(
     top_k: int,
     resource_type: str
 ) -> List[Dict]:
-    """Search Qdrant collection using unified Gemini embeddings"""
+    """Search Qdrant collection using SentenceTransformer embeddings (384-dim)"""
     if not qdrant_client:
         raise RuntimeError(f"✗ Qdrant client not available for collection '{collection}'")
     if not embedder:
-        raise RuntimeError("✗ Gemini embedder not available for generating search vectors")
+        raise RuntimeError("✗ Text embedder not available for generating search vectors")
 
     results = []
     seen = set()

@@ -14,6 +14,7 @@ sys.path.insert(0, str(services_dir))
 
 from fastapi import FastAPI
 from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import sessionmaker, Session
 
 from knowledge_service.api import router
@@ -23,7 +24,11 @@ from knowledge_service.models import Base
 
 # Database setup
 DATABASE_URL = "sqlite:///./knowledge_service.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create tables

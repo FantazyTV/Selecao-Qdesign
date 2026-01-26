@@ -3,46 +3,32 @@ Embedding package with specialized embedders
 """
 
 from .base_embedder import BaseEmbedder
-from .gemini_embedder import GeminiEmbedder
 
-# Import optional embedders with graceful fallback
-_fastembed_available = False
+# Import proper embedders
 try:
-    from .text_embedder import FastembedTextEmbedder
-    from .image_embedder import FastembedImageEmbedder
-    from .sequence_embedder import FastembedSequenceEmbedder
-    from .structure_embedder import StructureEmbedder
-    _fastembed_available = True
+    from .text_embedder import SentenceTransformerTextEmbedder
 except ImportError:
-    FastembedTextEmbedder = None
-    FastembedImageEmbedder = None
-    FastembedSequenceEmbedder = None
-    StructureEmbedder = None
+    SentenceTransformerTextEmbedder = None
 
-_esm_available = False
 try:
-    from .esm_embedder import ESMSequenceEmbedder, ESMStructureEmbedder
-    _esm_available = True
+    from .image_embedder import CLIPImageEmbedder
+except ImportError:
+    CLIPImageEmbedder = None
+
+try:
+    from .sequence_embedder import ESMSequenceEmbedder
 except ImportError:
     ESMSequenceEmbedder = None
-    ESMStructureEmbedder = None
+
+try:
+    from .structure_embedder import StructureEmbedder
+except ImportError:
+    StructureEmbedder = None
 
 __all__ = [
     "BaseEmbedder",
-    "GeminiEmbedder",
+    "SentenceTransformerTextEmbedder",
+    "CLIPImageEmbedder",
+    "ESMSequenceEmbedder",
+    "StructureEmbedder",
 ]
-
-# Add optional embedders to exports if available
-if _fastembed_available:
-    __all__.extend([
-        "FastembedTextEmbedder",
-        "FastembedImageEmbedder",
-        "FastembedSequenceEmbedder",
-        "StructureEmbedder",
-    ])
-
-if _esm_available:
-    __all__.extend([
-        "ESMSequenceEmbedder",
-        "ESMStructureEmbedder",
-    ])

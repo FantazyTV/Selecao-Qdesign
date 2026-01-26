@@ -40,7 +40,10 @@ class StorageConfig:
     qdrant_collection_images: str = "qdesign_images"
     
     pg_dsn: str = "postgresql://qdesign:qdesign@localhost:5432/qdesign"
-    vector_size: int = 384  # fastembed default
+    vector_size_text: int = 384  # SentenceTransformer (all-MiniLM-L6-v2)
+    vector_size_sequence: int = 1280  # ESM-2
+    vector_size_structure: int = 256  # PDB feature extraction
+    vector_size_image: int = 512  # CLIP (ViT-B-32)
 
 
 @dataclass
@@ -98,7 +101,10 @@ class Config:
             qdrant_collection_sequences=os.getenv("QDRANT_COLLECTION_SEQUENCES", "qdesign_sequences"),
             qdrant_collection_images=os.getenv("QDRANT_COLLECTION_IMAGES", "qdesign_images"),
             pg_dsn=os.getenv("PG_DSN", "postgresql://qdesign:qdesign@localhost:5432/qdesign"),
-            vector_size=int(os.getenv("VECTOR_SIZE", "384")),
+            vector_size_text=int(os.getenv("VECTOR_SIZE_TEXT", "384")),
+            vector_size_sequence=int(os.getenv("VECTOR_SIZE_SEQUENCE", "1280")),
+            vector_size_structure=int(os.getenv("VECTOR_SIZE_STRUCTURE", "256")),
+            vector_size_image=int(os.getenv("VECTOR_SIZE_IMAGE", "512")),
         )
         
         self.pipeline = PipelineConfig(

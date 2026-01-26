@@ -30,9 +30,20 @@ class QdrantClient:
             self.structure_collection = config.storage.qdrant_collection_structures
             self.sequence_collection = config.storage.qdrant_collection_sequences
             self.image_collection = config.storage.qdrant_collection_images
-            self.vector_size = config.storage.vector_size
+            
+            # Collection-specific vector dimensions
+            self.vector_sizes = {
+                self.text_collection: config.storage.vector_size_text,
+                self.sequence_collection: config.storage.vector_size_sequence,
+                self.structure_collection: config.storage.vector_size_structure,
+                self.image_collection: config.storage.vector_size_image,
+            }
             
             logger.info(f"Connected to Qdrant at {config.storage.qdrant_url}")
+            logger.info(f"Vector sizes: Text={config.storage.vector_size_text}, "
+                       f"Sequence={config.storage.vector_size_sequence}, "
+                       f"Structure={config.storage.vector_size_structure}, "
+                       f"Image={config.storage.vector_size_image}")
             
         except ImportError:
             raise ImportError("qdrant-client not installed. Install with: pip install qdrant-client")
