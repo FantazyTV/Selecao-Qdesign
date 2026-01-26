@@ -42,6 +42,7 @@ The system is composed of four distinct layers:
 ### A. The Ingestion & Embedding Layer
 Responsible for converting raw biological data into a unified vector space.
 *   **Structure Encoder:** Converts 3D coordinates (PDB files) into dense vectors capturing geometric topology and binding sites.
+*   **Sequence Encoder:** Converts protein sequences into dense vectors
 *   **Semantic Encoder:** Converts scientific literature (Abstracts, Methods) into semantic vectors.
 *   **Visual Encoder:** Converts microscopy/experimental images into visual vectors.
 *   **Normalization Engine:** Cleans and formats metadata (Temperature, pH, Organism) for database payloads.
@@ -49,7 +50,7 @@ Responsible for converting raw biological data into a unified vector space.
 ### B. The Memory Core (Vector Database)
 The central "Brain" of the architecture.
 *   **Storage:** Stores multimodal vectors in a unified collection.
-*   **Indexing:** Uses HNSW or similar indexing for sub-second retrieval.
+*   **Indexing:** Uses HNSW indexing for sub-second retrieval.
 *   **Payload Management:** Stores rich metadata for precise filtering (e.g., "Filter by Toxicity < Low").
 
 ### C. The Orchestration & Inference Engine
@@ -63,6 +64,7 @@ The visual interface for the scientist.
 *   **3D Molecular Viewer:** Renders protein structures interactively.
 *   **Latent Space Map:** A 2D visualization of the vector space, showing clusters of related proteins.
 *   **Knowledge Graph:** A node-link visualization showing relationships between proteins, papers, and experiments.
+*   **Real-time collaboration:** All updates are real-time for all project users.
 
 ---
 
