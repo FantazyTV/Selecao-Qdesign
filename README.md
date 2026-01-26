@@ -1,8 +1,29 @@
 # PROJECT SPECIFICATION: QDESIGN
-**Platform:** QDesign - Collaborative AI-Driven Biological Design Workbench
+**Platform:** QDesign, a Collaborative AI-Driven Biological Design Workbench
 **Hackathon Submission:** Use Case 4 (Multimodal Biological Design & Discovery)
 
 ---
+## Team Members
+
+### Development Team
+- Ghassen Naouar
+- Moetez Fradi
+- Ahmed Saad
+- Ghassen Naouar
+
+**Screenshots of our current implementation:**
+
+#### Dashboard Interface
+![Dashboard](Screenshots/dashboard.png)
+*Main dashboard showing the QDesign workbench interface*
+
+#### Data Pool Visualization  
+![Data Pool](Screenshots/data-pool.png)
+*Visualization of the protein data collection and management system*
+
+#### Data Visualization Components
+![Data Visualization](Screenshots/data-visualisation.png)
+*Interactive data visualization tools for exploring biological structures and relationships*
 
 ## 1. Executive Summary
 **QDesign** is a "Human-in-the-Loop" generative workbench for biological engineering. Unlike standard search engines that simply retrieve data, or chatbots that hallucinate answers, QDesign creates a **structured, visual workspace**. It combines **Multimodal Retrieval** (linking 3D structure to scientific text) with **Agentic Reasoning** to actively propose, critique, and refine new biological designs (such as enzymes or drug targets).
