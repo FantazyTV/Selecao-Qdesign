@@ -79,7 +79,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     socket.on("connect", () => {
       setIsConnected(true);
-      console.log("Socket connected");
+      console.log("Socket connected to:", process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001");
     });
 
     socket.on("disconnect", () => {
@@ -218,8 +218,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
   // Helper functions for emitting specific events
   const emitPoolAdd = useCallback((projectId: string, item: DataPoolItem) => {
+    console.log('[DEBUG] Socket context: emitPoolAdd called with:', { projectId, item });
     if (socketRef.current) {
+      console.log('[DEBUG] Socket context: Socket exists, emitting pool:add');
       socketRef.current.emit("pool:add", { projectId, item });
+    } else {
+      console.log('[DEBUG] Socket context: No socket connection!');
     }
   }, []);
 
@@ -230,8 +234,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const emitPoolRemove = useCallback((projectId: string, itemId: string) => {
+    console.log('[DEBUG] Socket context: emitPoolRemove called with:', { projectId, itemId });
     if (socketRef.current) {
+      console.log('[DEBUG] Socket context: Socket exists, emitting pool:remove');
       socketRef.current.emit("pool:remove", { projectId, itemId });
+    } else {
+      console.log('[DEBUG] Socket context: No socket connection!');
     }
   }, []);
 

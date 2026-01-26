@@ -14,6 +14,16 @@ export class CreateProjectDto {
   @IsString({ each: true })
   secondaryObjectives?: string[];
 
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  constraints?: string[];
+
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  notes?: string[];
+
   @IsString()
   @IsOptional()
   description?: string;

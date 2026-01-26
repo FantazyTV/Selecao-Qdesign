@@ -61,6 +61,7 @@ import { KnowledgeGraphView } from "@/components/workspace/KnowledgeGraph";
 import { CoScientistSidebar } from "@/components/workspace/CoScientistSidebar";
 import {
   FloatingWindow,
+  TextViewer,
   PDBViewer,
   PDFViewer,
   ImageViewer,
@@ -71,7 +72,7 @@ type ProjectMode = "pool" | "retrieval" | "coscientist";
 
 interface ViewerWindow {
   id: string;
-  type: "pdb" | "pdf" | "image" | "sequence";
+  type: "pdb" | "pdf" | "image" | "sequence" | "text";
   title: string;
   data: string;
   position: { x: number; y: number };
@@ -81,6 +82,7 @@ interface ViewerWindow {
 
 async function fetchProject(id: string) {
   const response = await projectsApi.get(id);
+  console.log(response);
   return response.project;
 }
 
@@ -101,6 +103,40 @@ async function runAnalysis(id: string, options?: { feedback?: string; action?: s
   // For now, return a mock response
   console.warn("Analysis endpoint not yet implemented in backend");
   return { hasMore: false };
+}
+
+function ModeIndicatorMobile({
+  mode,
+  onChange,
+}: {
+  mode: ProjectMode;
+  onChange: (mode: ProjectMode) => void;
+}) {
+  const modes: { key: ProjectMode; label: string; icon: React.ReactNode }[] = [
+    { key: "pool", label: "Pool", icon: <Database className="h-4 w-4" /> },
+    { key: "retrieval", label: "Graph", icon: <Network className="h-4 w-4" /> },
+    { key: "coscientist", label: "AI", icon: <Brain className="h-4 w-4" /> },
+  ];
+
+  return (
+    <div className="flex items-center gap-1">
+      {modes.map((m, idx) => (
+        <button
+          key={m.key}
+          className={cn(
+            "flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-all",
+            mode === m.key
+              ? "bg-green-600 text-gray-900 shadow-lg"
+              : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+          )}
+          onClick={() => onChange(m.key)}
+        >
+          {m.icon}
+          <span className="hidden sm:inline">{m.label}</span>
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function ModeIndicator({
@@ -331,6 +367,7 @@ export default function ProjectWorkspace({
     joinProject, 
     leaveProject, 
     isConnected,
+    emit,
     emitPoolAdd,
     emitPoolRemove,
     emitGraphNodeAdd,
@@ -439,38 +476,56 @@ export default function ProjectWorkspace({
     setViewers([...viewers, newViewer]);
   };
 
-  const closeViewer = (id: string) => {
+  const closeViewer = useCallback((id: string) => {
     setViewers(viewers.filter((v) => v.id !== id));
-  };
+  }, [viewers]);
 
-  const updateViewerPosition = (id: string, position: { x: number; y: number }) => {
+  const updateViewerPosition = useCallback((id: string, position: { x: number; y: number }) => {
     setViewers(viewers.map((v) => (v.id === id ? { ...v, position } : v)));
-  };
+  }, [viewers]);
 
-  const updateViewerSize = (id: string, size: { width: number; height: number }) => {
+  const updateViewerSize = useCallback((id: string, size: { width: number; height: number }) => {
     setViewers(viewers.map((v) => (v.id === id ? { ...v, size } : v)));
-  };
+  }, [viewers]);
 
-  const minimizeViewer = (id: string) => {
+  const minimizeViewer = useCallback((id: string) => {
     setViewers(viewers.map((v) => (v.id === id ? { ...v, minimized: true } : v)));
-  };
+  }, [viewers]);
 
-  const restoreViewer = (id: string) => {
+  const restoreViewer = useCallback((id: string) => {
     setViewers(viewers.map((v) => (v.id === id ? { ...v, minimized: false } : v)));
-  };
+  }, [viewers]);
 
   // Data pool handlers
   const handleAddPoolItem = async (item: Omit<DataPoolItem, "_id" | "addedBy" | "addedAt">) => {
+    console.log('[DEBUG] handleAddPoolItem called with:', item);
+    console.log('[DEBUG] Item content length:', item.content?.length);
+    
     const newItem: DataPoolItem = {
       ...item,
       _id: uuidv4(),
       addedBy: user?.id || "",
       addedAt: new Date().toISOString(),
     };
+    
+    console.log('[DEBUG] Created new item:', { ...newItem, content: newItem.content?.substring(0, 100) + '...' });
+    
     const updatedPool = [...(project?.dataPool || []), newItem];
-    updateMutation.mutate({ dataPool: updatedPool });
-    // Emit socket event for real-time sync
-    emitPoolAdd(projectId, newItem);
+    console.log('[DEBUG] Updated pool length:', updatedPool.length);
+    
+    try {
+      console.log('[DEBUG] Calling updateMutation.mutate');
+      await updateMutation.mutateAsync({ dataPool: updatedPool });
+      console.log('[DEBUG] updateMutation completed successfully');
+      
+      // Emit socket event for real-time sync
+      console.log('[DEBUG] Frontend: About to emit pool:add with:', { projectId, newItem });
+      emitPoolAdd(projectId, newItem);
+      console.log('[DEBUG] Frontend: Emitted pool:add');
+    } catch (error) {
+      console.error('[DEBUG] updateMutation failed:', error);
+      throw error;
+    }
   };
 
   const handleRemovePoolItem = async (id: string) => {
@@ -479,7 +534,9 @@ export default function ProjectWorkspace({
     );
     updateMutation.mutate({ dataPool: updatedPool });
     // Emit socket event for real-time sync
+    console.log('[DEBUG] Frontend: About to emit pool:remove with:', { projectId, id });
     emitPoolRemove(projectId, id);
+    console.log('[DEBUG] Frontend: Emitted pool:remove');
   };
 
   // Knowledge graph handlers
@@ -624,8 +681,8 @@ export default function ProjectWorkspace({
     <TooltipProvider>
       <div className="flex h-screen flex-col bg-gray-950">
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-gray-800 bg-gray-900 px-6 py-3">
-          <div className="flex items-center gap-4">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-800 bg-gray-900 px-6 py-3">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
@@ -634,27 +691,34 @@ export default function ProjectWorkspace({
             >
               <Home className="h-4 w-4" />
             </Button>
-            <div>
-              <h1 className="text-lg font-semibold text-green-100">
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-semibold text-green-100">
                 {project.name}
               </h1>
-              <p className="text-xs text-gray-400">{project.description}</p>
+              <p className="truncate text-xs text-gray-400">{project.description}</p>
             </div>
-            <Badge variant="outline" className="ml-2 border-green-700 text-green-400">
+            <Badge variant="outline" className="hidden sm:block border-green-700 text-green-400">
               {project.members?.length || 1} member
               {project.members?.length !== 1 ? "s" : ""}
             </Badge>
           </div>
 
           {/* Mode Indicator */}
-          <ModeIndicator mode={mode} onChange={setMode} />
+          <div className="hidden lg:block">
+            <ModeIndicator mode={mode} onChange={setMode} />
+          </div>
+          <div className="block lg:hidden">
+            <ModeIndicatorMobile mode={mode} onChange={setMode} />
+          </div>
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <CheckpointHistory
-              checkpoints={project.checkpoints || []}
-              onRestore={handleRestoreCheckpoint}
-            />
+            <div className="hidden sm:block">
+              <CheckpointHistory
+                checkpoints={project.checkpoints || []}
+                onRestore={handleRestoreCheckpoint}
+              />
+            </div>
 
             <Button
               variant="outline"
@@ -662,8 +726,8 @@ export default function ProjectWorkspace({
               onClick={() => setShowCheckpointDialog(true)}
               className="border-gray-700 text-gray-300 hover:bg-gray-800"
             >
-              <Save className="mr-2 h-4 w-4" />
-              Save
+              <Save className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Save</span>
             </Button>
 
             <Button
@@ -672,14 +736,14 @@ export default function ProjectWorkspace({
               onClick={() => setShowShareDialog(true)}
               className="border-gray-700 text-gray-300 hover:bg-gray-800"
             >
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
+              <Share2 className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Share</span>
             </Button>
 
             {/* Team Avatars */}
-            <div className="ml-2 flex -space-x-2">
+            <div className="ml-2 hidden md:flex -space-x-2">
               {(project.members || []).slice(0, 3).map((member: any, idx: number) => (
-                <Tooltip key={member.userId}>
+                <Tooltip key={member.user.id}>
                   <TooltipTrigger asChild>
                     <Avatar className="h-8 w-8 border-2 border-gray-800">
                       <AvatarFallback
@@ -690,11 +754,11 @@ export default function ProjectWorkspace({
                           idx === 2 && "bg-teal-950 text-teal-400"
                         )}
                       >
-                        {member.name?.charAt(0) || "U"}
+                        {member.user.name?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </TooltipTrigger>
-                  <TooltipContent>{member.name || "User"}</TooltipContent>
+                  <TooltipContent>{member.user.name || "User"}</TooltipContent>
                 </Tooltip>
               ))}
             </div>
@@ -720,7 +784,7 @@ export default function ProjectWorkspace({
         </header>
 
         {/* Main Content */}
-        <main className="relative flex-1 overflow-hidden">
+        <main className="relative flex-1 overflow-auto">
           {/* Data Pool Mode */}
           {mode === "pool" && (
             <DataPool
@@ -728,6 +792,9 @@ export default function ProjectWorkspace({
               onAddItem={handleAddPoolItem}
               onRemoveItem={handleRemovePoolItem}
               onViewItem={openViewer}
+              projectId={projectId}
+              project={project}
+              onUpdateProject={async (data) => updateMutation.mutate(data)}
             />
           )}
 
@@ -839,6 +906,9 @@ export default function ProjectWorkspace({
                 )}
                 {viewer.type === "sequence" && (
                   <SequenceViewer content={viewer.data} />
+                )}
+                {viewer.type === "text" && (
+                  <TextViewer content={viewer.data} />
                 )}
               </FloatingWindow>
             );

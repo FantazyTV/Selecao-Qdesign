@@ -59,7 +59,7 @@ export function PDBViewer({ content, fileUrl, pdbId }: PDBViewerProps) {
         if (content) {
           // Load from content string
           const blob = new Blob([content], { type: "text/plain" });
-          loadPromise = stage.loadFile(blob, { ext: "pdb" });
+          loadPromise = stage.loadFile(blob, { ext: "mmcif" });
         } else if (fileUrl) {
           loadPromise = stage.loadFile(fileUrl);
         } else if (pdbId) {
@@ -179,6 +179,9 @@ export function PDBViewer({ content, fileUrl, pdbId }: PDBViewerProps) {
             <SelectItem value="element">Element</SelectItem>
             <SelectItem value="bfactor">B-Factor</SelectItem>
             <SelectItem value="sstruc">Secondary</SelectItem>
+            <SelectItem value="resname">Residue Name</SelectItem>
+            <SelectItem value="hydrophobicity">Hydrophobicity</SelectItem>
+            <SelectItem value="uniform">Uniform</SelectItem>
           </SelectContent>
         </Select>
         

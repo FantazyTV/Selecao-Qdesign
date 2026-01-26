@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { FileCode, Copy, Download } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { FileCode, Copy, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SequenceViewerProps {
   content?: string;
   fileUrl?: string;
-  format?: "fasta" | "raw";
 }
 
 // Amino acid color scheme (based on physicochemical properties)
@@ -32,7 +31,7 @@ interface ParsedSequence {
   sequence: string;
 }
 
-function parseFasta(content: string): ParsedSequence[] {
+function parseFasta(content: string, maxSequences: number = 50): ParsedSequence[] {
   const sequences: ParsedSequence[] = [];
   const lines = content.split("\n");
   let currentSeq: ParsedSequence | null = null;
@@ -42,6 +41,7 @@ function parseFasta(content: string): ParsedSequence[] {
     if (trimmed.startsWith(">")) {
       if (currentSeq) {
         sequences.push(currentSeq);
+        if (sequences.length >= maxSequences) break;
       }
       const headerParts = trimmed.substring(1).split(" ");
       currentSeq = {
@@ -50,25 +50,58 @@ function parseFasta(content: string): ParsedSequence[] {
         sequence: "",
       };
     } else if (currentSeq && trimmed) {
-      currentSeq.sequence += trimmed;
+      // Limit individual sequence length to prevent memory issues
+      if (currentSeq.sequence.length < 5000) {
+        currentSeq.sequence += trimmed;
+      } else if (!currentSeq.sequence.endsWith("...")) {
+        currentSeq.sequence += "...";
+      }
     }
   }
   
-  if (currentSeq) {
+  if (currentSeq && sequences.length < maxSequences) {
     sequences.push(currentSeq);
   }
   
   return sequences;
 }
 
-export function SequenceViewer({ content, format = "fasta" }: SequenceViewerProps) {
+export function SequenceViewer({ content }: SequenceViewerProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   const sequences = useMemo(() => {
     if (!content) return [];
-    if (format === "fasta") {
-      return parseFasta(content);
+    
+    // Early size check to prevent crashes
+    if (content.length > 300000000) { // 300MB limit
+      return [{ 
+        id: "⚠️ File Too Large", 
+        description: `File size: ${Math.round(content.length / (1024*1024))}MB - too large to display safely. Use download to access the full file.`, 
+        sequence: "" 
+      }];
     }
-    return [{ id: "Sequence", description: "", sequence: content }];
-  }, [content, format]);
+    
+    // Show processing indicator for large files
+    if (content.length > 10000000) { // 10MB+
+      setIsProcessing(true);
+      // Use setTimeout to allow UI to update before processing
+      setTimeout(() => setIsProcessing(false), 500); // Longer timeout for large files
+    }
+    
+    const maxContentLength = 50000000; // 50MB limit for processing
+    const truncated = content.length > maxContentLength;
+    const displayContent = truncated ? content.substring(0, maxContentLength) : content;
+    
+    const parsed = parseFasta(displayContent, 50); // Show first 50 sequences
+    if (truncated) {
+      parsed.push({ 
+        id: "⚠️ File Truncated", 
+        description: `Original file: ${Math.round(content.length / (1024*1024))}MB, showing first 50MB only`, 
+        sequence: "" 
+      });
+    }
+    return parsed;
+  }, [content]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -84,12 +117,24 @@ export function SequenceViewer({ content, format = "fasta" }: SequenceViewerProp
     URL.revokeObjectURL(url);
   };
 
-  if (!content || sequences.length === 0) {
+  if (!content) {
     return (
       <div className="flex h-full items-center justify-center bg-slate-50">
         <div className="text-center">
           <FileCode className="mx-auto h-12 w-12 text-slate-300" />
-          <p className="mt-2 text-sm text-slate-500">No sequence data provided</p>
+          <p className="mt-2 text-sm text-slate-500">No content provided</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (sequences.length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <FileCode className="mx-auto h-12 w-12 text-slate-300" />
+          <p className="mt-2 text-sm text-slate-500">Unable to parse content</p>
+          <p className="mt-1 text-xs text-slate-400">Content length: {content.length} chars</p>
         </div>
       </div>
     );
@@ -126,6 +171,14 @@ export function SequenceViewer({ content, format = "fasta" }: SequenceViewerProp
       
       {/* Sequences */}
       <ScrollArea className="flex-1">
+        {isProcessing && (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-slate-600 mx-auto" />
+              <p className="mt-2 text-sm text-slate-600">Processing large FASTA file...</p>
+            </div>
+          </div>
+        )}
         <div className="p-4 space-y-6">
           {sequences.map((seq, idx) => (
             <div key={idx} className="space-y-2">
@@ -139,7 +192,7 @@ export function SequenceViewer({ content, format = "fasta" }: SequenceViewerProp
                   )}
                 </div>
                 <span className="text-xs text-slate-400">
-                  {seq.sequence.length} aa
+                  {seq.sequence ? `${seq.sequence.length} aa` : 'No sequence'}
                 </span>
               </div>
               
@@ -162,14 +215,14 @@ export function SequenceViewer({ content, format = "fasta" }: SequenceViewerProp
               
               {/* Position ruler */}
               <div className="font-mono text-[10px] text-slate-400 overflow-x-auto">
-                {Array.from({ length: Math.ceil(seq.sequence.length / 10) }).map(
-                  (_, i) => (
-                    <span key={i} className="inline-block w-[70px]">
-                      {(i + 1) * 10}
-                    </span>
-                  )
-                )}
-              </div>
+                  {Array.from({ length: Math.ceil(seq.sequence.length / 10) }).map(
+                    (_, i) => (
+                      <span key={i} className="inline-block w-[70px]">
+                        {(i + 1) * 10}
+                      </span>
+                    )
+                  )}
+                </div>
             </div>
           ))}
         </div>

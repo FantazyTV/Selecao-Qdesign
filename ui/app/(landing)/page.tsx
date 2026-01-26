@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/stores";
@@ -15,11 +15,14 @@ import {
   Microscope,
   Target,
   Loader2,
+  Menu,
+  X,
 } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
   const { user, isLoading } = useAuthStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -36,7 +39,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen overflow-x-hidden bg-gray-950">
       {/* Header */}
       <header className="border-b border-gray-800">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
@@ -46,7 +49,9 @@ export default function Home() {
             </div>
             <span className="text-xl font-semibold text-green-400">QDesign</span>
           </div>
-          <nav className="flex items-center gap-6">
+          
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-6 sm:flex">
             <Link
               href="/login"
               className="text-sm font-medium text-gray-300 hover:text-green-400"
@@ -57,7 +62,34 @@ export default function Home() {
               <Button size="sm">Get Started</Button>
             </Link>
           </nav>
+          
+          {/* Mobile menu button */}
+          <button
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-300 hover:bg-gray-800 sm:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+        
+        {/* Mobile nav */}
+        {mobileMenuOpen && (
+          <div className="border-t border-gray-800 px-6 py-4 sm:hidden">
+            <nav className="flex flex-col gap-4">
+              <Link
+                href="/login"
+                className="text-sm font-medium text-gray-300 hover:text-green-400"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Sign in
+              </Link>
+              <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                <Button size="sm" className="w-full">Get Started</Button>
+              </Link>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Hero */}

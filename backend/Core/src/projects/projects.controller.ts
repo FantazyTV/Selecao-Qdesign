@@ -11,7 +11,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
-import { CreateProjectDto, UpdateProjectDto, CreateCheckpointDto, JoinProjectDto } from './dto';
+import { CreateProjectDto, UpdateProjectDto, CreateCheckpointDto, JoinProjectDto, AddCommentDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserData } from '../auth/decorators/current-user.decorator';
@@ -100,5 +100,37 @@ export class ProjectsController {
       user.userId,
     );
     return { project, message: 'Checkpoint restored' };
+  }
+
+  @Post(':id/data-pool/:itemId/comments')
+  async addComment(
+    @Param('id') id: string,
+    @Param('itemId') itemId: string,
+    @Body() addCommentDto: AddCommentDto,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const project = await this.projectsService.addComment(
+      id,
+      itemId,
+      addCommentDto,
+      user.userId,
+    );
+    return { project };
+  }
+
+  @Delete(':id/data-pool/:itemId/comments/:commentId')
+  async deleteComment(
+    @Param('id') id: string,
+    @Param('itemId') itemId: string,
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const project = await this.projectsService.deleteComment(
+      id,
+      itemId,
+      commentId,
+      user.userId,
+    );
+    return { project };
   }
 }

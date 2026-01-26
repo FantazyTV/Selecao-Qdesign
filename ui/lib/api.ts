@@ -127,7 +127,7 @@ export const projectsApi = {
   get: (id: string) =>
     request<{ project: any }>(`/projects/${id}`),
     
-  create: (body: { name: string; mainObjective: string; secondaryObjectives?: string[]; description?: string }) =>
+  create: (body: { name: string; mainObjective: string; secondaryObjectives?: string[]; constraints?: string[]; notes?: string[]; description?: string }) =>
     request<{ project: any }>('/projects', { method: 'POST', body: JSON.stringify(body) }),
     
   update: (id: string, body: Partial<any>) =>
@@ -144,4 +144,21 @@ export const projectsApi = {
     
   restoreCheckpoint: (projectId: string, checkpointId: string) =>
     request<{ project: any; message: string }>(`/projects/${projectId}/checkpoints/${checkpointId}/restore`, { method: 'POST' }),
+    
+  addComment: (projectId: string, itemId: string, comment: string) =>
+    request<{ project: any }>(`/projects/${projectId}/data-pool/${itemId}/comments`, { 
+      method: 'POST', 
+      body: JSON.stringify({ text: comment }) 
+    }),
+    
+  deleteComment: (projectId: string, itemId: string, commentId: string) =>
+    request<{ project: any }>(`/projects/${projectId}/data-pool/${itemId}/comments/${commentId}`, { 
+      method: 'DELETE' 
+    }),
+};
+
+// Combined API object
+export const api = {
+  auth: authApi,
+  projects: projectsApi,
 };

@@ -54,6 +54,8 @@ export default function DashboardPage() {
     name: "",
     mainObjective: "",
     secondaryObjectives: "",
+    constraints: "",
+    notes: "",
     description: "",
   });
 
@@ -108,6 +110,12 @@ export default function DashboardPage() {
         name: newProject.name,
         mainObjective: newProject.mainObjective,
         secondaryObjectives: newProject.secondaryObjectives
+          .split("\n")
+          .filter(Boolean),
+        constraints: newProject.constraints
+          .split("\n")
+          .filter(Boolean),
+        notes: newProject.notes
           .split("\n")
           .filter(Boolean),
         description: newProject.description,
@@ -327,6 +335,40 @@ export default function DashboardPage() {
                           setNewProject({
                             ...newProject,
                             secondaryObjectives: e.target.value,
+                          })
+                        }
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="constraints" className="text-gray-300">
+                        Constraints (one per line)
+                      </Label>
+                      <Textarea
+                        id="constraints"
+                        placeholder="Budget limitations&#10;Time constraints&#10;Regulatory requirements"
+                        value={newProject.constraints}
+                        onChange={(e) =>
+                          setNewProject({
+                            ...newProject,
+                            constraints: e.target.value,
+                          })
+                        }
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="notes" className="text-gray-300">
+                        Notes (one per line)
+                      </Label>
+                      <Textarea
+                        id="notes"
+                        placeholder="Key considerations&#10;Important references&#10;Future directions"
+                        value={newProject.notes}
+                        onChange={(e) =>
+                          setNewProject({
+                            ...newProject,
+                            notes: e.target.value,
                           })
                         }
                         rows={3}

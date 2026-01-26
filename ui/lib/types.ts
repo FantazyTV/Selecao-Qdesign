@@ -7,6 +7,17 @@ export interface User {
   avatar?: string;
 }
 
+export interface DataPoolComment {
+  _id: string;
+  author: {
+    _id: string;
+    name: string;
+    email: string;
+  } | string; // Can be populated object or just string ID
+  text: string;
+  createdAt: string;
+}
+
 export interface DataPoolItem {
   _id: string;
   id?: string; // Alias for frontend compatibility
@@ -19,6 +30,7 @@ export interface DataPoolItem {
   metadata?: Record<string, unknown>;
   addedBy: string;
   addedAt: string;
+  comments?: DataPoolComment[];
 }
 
 export interface GraphNode {
@@ -102,6 +114,8 @@ export interface Project {
   name: string;
   mainObjective: string;
   secondaryObjectives: string[];
+  constraints: string[];
+  notes: string[];
   description?: string;
   owner: string;
   members: Array<{

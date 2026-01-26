@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Loader2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,11 +54,13 @@ export function PDFViewer({ content, fileUrl }: PDFViewerProps) {
     setScale((prev) => Math.max(prev - 0.2, 0.5));
   };
 
-  const pdfSource = content
-    ? { data: atob(content) }
-    : fileUrl
-    ? { url: fileUrl }
-    : null;
+  const pdfSource = useMemo(() => {
+    return content
+      ? { data: atob(content) }
+      : fileUrl
+      ? { url: fileUrl }
+      : null;
+  }, [content, fileUrl]);
 
   if (!pdfSource) {
     return (
