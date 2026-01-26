@@ -12,3 +12,9 @@ backend/Services/ingest/__pycache__/
 backend/Services/ingest/.pytest_cache/
 
 pnpm-lock.yaml
+
+.env
+
+Data/
+
+knowledge_service.db
