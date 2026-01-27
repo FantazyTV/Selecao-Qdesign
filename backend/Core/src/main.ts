@@ -8,7 +8,7 @@ async function bootstrap() {
   
   // Enable CORS for the frontend
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3002', 'http://127.0.0.1:3002', 'https://selecao-q-design.vercel.app/'],
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3002', 'http://127.0.0.1:3002', 'https://selecao-q-design-dfzr8jh2o-sewey69s-projects.vercel.app'],
     credentials: true,
   });
   
