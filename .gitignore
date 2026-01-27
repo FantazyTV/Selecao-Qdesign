@@ -16,3 +16,5 @@ pnpm-lock.yaml
 .env
 
 knowledge_service.db
+
+pdbs/

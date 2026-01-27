@@ -1,0 +1,22 @@
+name: protein-analysis
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.13
+  - biopython
+  - jupyter
+  - ipykernel
+  - numpy
+  - matplotlib
+  - dssp
+  - pip
+  - pip:
+      - torch
+      - fair-esm
+      - scikit-learn
+      - seaborn
+      - tqdm
+      - pandas
+      - scipy
+      - matplotlib
