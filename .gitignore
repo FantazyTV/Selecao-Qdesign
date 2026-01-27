@@ -18,3 +18,6 @@ pnpm-lock.yaml
 knowledge_service.db
 
 pdbs/
+processed_data.npz
+
+*.pkl
