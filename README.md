@@ -2,6 +2,11 @@
 **Platform:** QDesign, a Collaborative AI-Driven Biological Design Workbench
 **Hackathon Submission:** Use Case 4 (Multimodal Biological Design & Discovery)
 
+## Live URL:
+
+https://qdesign.moetezfradi.me 
+
+credentials: 123@gmail.com password: 123456
 ---
 ## Team Members
 
