@@ -16,3 +16,8 @@ pnpm-lock.yaml
 .env
 
 knowledge_service.db
+
+pdbs/
+processed_data.npz
+
+*.pkl
