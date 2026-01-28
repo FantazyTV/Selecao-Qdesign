@@ -41,9 +41,3 @@ def resolve_protein_name(name: str):
         pass
 
     return resolved
-
-
-if __name__ == "__main__":
-    protein_name = "hemoglobin"
-    result = resolve_protein_name(protein_name)
-    print(f"Resolved '{protein_name}':\n", result)

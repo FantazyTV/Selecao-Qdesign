@@ -36,6 +36,9 @@ class Edge:
             "evidence": self.evidence,
             "provenance": self.provenance,
         }
+    
+    def __str__(self) -> str:
+        return f"Edge({self.from_id} --[{self.type}]--> {self.to_id}, score={self.score}) \n Evidence: {self.evidence} \n Provenance: {json.dumps(self.provenance)}"
 
 class Graph:
     def __init__(self):

@@ -54,6 +54,7 @@ class SubLLMTools:
                 temperature=temperature,
                 max_tokens=max_tokens
             )
+            print(f"LLM Response: {completion.choices[0].message.content}")
             return completion.choices[0].message.content
         except Exception as e:
             logger.error(f"LLM call failed: {str(e)}")
@@ -80,7 +81,7 @@ class SubLLMTools:
             "relevance_score": float (0-1),
             "main_objective_alignment": float (0-1),
             "secondary_alignment": [float for each secondary objective],
-            "constraint_violations": [list of potential violations],
+            "constraint_violations": [list of potential violations or nothing],
             "key_insights": [list of relevant insights from the content],
             "recommended_connections": [list of potential connections to make],
             "content_type_assessment": "description of what type of information this is"
@@ -95,13 +96,6 @@ class SubLLMTools:
         except json.JSONDecodeError:
             # Fallback parsing
             return {
-                "relevance_score": 0.5,
-                "main_objective_alignment": 0.5,
-                "secondary_alignment": [0.5] * len(secondary_objectives),
-                "constraint_violations": [],
-                "key_insights": ["Analysis failed - manual review needed"],
-                "recommended_connections": [],
-                "content_type_assessment": "unknown",
                 "error": "Failed to parse LLM response"
             }
     
@@ -331,8 +325,11 @@ class SubLLMTools:
         
         try:
             response = self._call_llm(prompt, max_tokens=1500)
-            return json.loads(response)
+            parsed = json.loads(response)
+            logger.info(f"Retrieval Strategy: {parsed}")
+            return parsed
         except json.JSONDecodeError:
+            logger.error("Failed to parse LLM response for retrieval strategy")
             return {
                 "primary_queries": [],
                 "secondary_queries": [],

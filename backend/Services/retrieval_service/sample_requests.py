@@ -18,14 +18,13 @@ payload = {
             "id": "cif_entry_1",
             "type": "cif",
             "name": "1E2A.cif",
-            "description": "Hemoglobin structure for analysis",
             "content": cif_content,
             "addedBy": "test_user",
             "addedAt": datetime.now().isoformat(),
             "comments": []
         }
     ],
-    "mainObjective": "increase hemoglobin efficiency in cold environment",
+    "mainObjective": "create a Thermostable Enzyme Variant for cold environments",
     "secondaryObjectives": [],
     "Notes": [],
     "Constraints": []
@@ -48,8 +47,13 @@ try:
         response = client.post(url, json=payload, headers=headers)
         print(f"Status Code: {response.status_code}")
         if response.status_code == 200:
+            output = response.json()
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            with open(f"response_{ts}.json", "w") as f:
+                json.dump(output, f, indent=2)
             print("Response:")
-            print(json.dumps(response.json(), indent=2))
+            print(json.dumps(output, indent=2))
+
         else:
             print("Error Response:")
             print(response.text)

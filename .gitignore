@@ -20,4 +20,12 @@ knowledge_service.db
 pdbs/
 processed_data.npz
 
+*.log
 *.pkl
+*.cif
+*.fasta
+
+
+response*.jsonl
+testing*.py
+*demo.py

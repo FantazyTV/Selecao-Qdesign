@@ -55,14 +55,14 @@ def _search_qdrant(collection, seed_vector, n, feature_mask):
         out.append({
             "node_id": node_id,
             "score": score,
-            "score_explanation": score_explanation,
-            "biological_features": mapped_features
+            # "score_explanation": score_explanation,
+            "biological_features": list(mapped_features.values())[9], # 9 is arbitrary, didn't put 0 because for our small data it was too repetitive
         })
 
     return out
 
-def retrieve_similar_cif(seed_vector, n=50, feature_mask=None):
+def retrieve_similar_cif(seed_vector, n=10, feature_mask=None):
     return _search_qdrant("structures", seed_vector, n, feature_mask)
 
-def retrieve_similar_fasta(seed_vector, n=50, feature_mask=None):
+def retrieve_similar_fasta(seed_vector, n=10, feature_mask=None):
     return _search_qdrant("uniprot_sequences", seed_vector, n, feature_mask)

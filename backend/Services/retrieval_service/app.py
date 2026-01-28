@@ -20,7 +20,7 @@ from api.retrieval_router import router as retrieval_router
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler('retrieval_service.log'),

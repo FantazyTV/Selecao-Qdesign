@@ -153,43 +153,387 @@ class MultiModalRetrievalAgent:
         self.processing_stats = defaultdict(int)
         
     def process_data_pool_request(self, request: DataPoolRequest) -> GraphAnalysisResponse:
-        """Main entry point for processing data pool requests."""
+        """Main entry point for processing data pool requests using the new deterministic pipeline."""
         logger.info(f"Processing data pool with {len(request.dataPool)} entries")
         
-        # Store objectives
-        self.objectives = {
-            "mainObjective": request.mainObjective,
-            "secondaryObjectives": request.secondaryObjectives,
-            "Notes": request.Notes,
-            "Constraints": request.Constraints
+        # Convert DataPoolRequest to run_single_job format
+        project_payload = {
+            "files": [
+                {
+                    "type": entry.type.value,
+                    "content": entry.content,
+                    "name": entry.name,
+                    "description": entry.description
+                }
+                for entry in request.dataPool
+            ],
+            "objectives": {
+                "mainObjective": request.mainObjective,
+                "secondaryObjectives": request.secondaryObjectives,
+                "Notes": request.Notes,
+                "Constraints": request.Constraints
+            }
         }
         
         try:
-            # Phase 1: Parse and create initial nodes
-            self._create_initial_nodes(request.dataPool)
+            # Use the new deterministic pipeline
+            result = self.run_single_job(project_payload)
             
-            # Phase 2: Analyze content and extract relationships
-            self._analyze_relationships()
-            
-            # Phase 3: Iterative retrieval based on objectives
-            self._iterative_retrieval()
-            
-            # Phase 4: Generate final insights
-            insights = self._synthesize_insights()
-            
-            # Create response
-            graph_data = self._convert_to_api_format()
+            # Convert result to GraphAnalysisResponse format
+            graph_data = GraphData(
+                nodes=[
+                    GraphNode(
+                        id=str(node["id"]),
+                        type=node["type"],
+                        label=str(node["label"]),
+                        metadata=node.get("metadata", {})
+                    )
+                    for node in result["nodes"]
+                ],
+                edges=[
+                    GraphEdge(
+                        from_id=str(edge["from_id"]),
+                        to_id=str(edge["to_id"]),
+                        type=edge["type"],
+                        score=edge.get("score"),
+                        evidence=edge.get("evidence"),
+                        provenance=edge.get("provenance", {})
+                    )
+                    for edge in result["edges"]
+                ]
+            )
             
             return GraphAnalysisResponse(
                 graphs=[graph_data],
-                summary=insights.get("executive_summary", ""),
-                processing_stats=dict(self.processing_stats),
-                recommendations=insights.get("recommendations", [])
+                summary=f"Processed {len(result['nodes'])} nodes and {len(result['edges'])} edges",
+                processing_stats=result["metadata"]["processing_stats"],
+                recommendations=[]
             )
             
         except Exception as e:
             logger.error(f"Error processing data pool: {str(e)}")
             raise
+    
+    def run_single_job(self, project_payload: Dict[str, Any]) -> Dict[str, Any]:
+        """New simplified pipeline for processing project files with deterministic logic."""
+        print("=== STARTING AGENT PIPELINE: run_single_job ===")
+        from agent.tools.parser.cif_parser import parse_cif_file
+        from agent.tools.summarizer import summarize_parsed
+        from agent.tools.embedder import embed_if_missing, dummy_embedder
+        from agent.tools.validator import validate_against_objectives
+        from utils.processing import generate_node_id
+        
+        logger.info("Starting new deterministic pipeline")
+        
+        # Reset graph and stats
+        self.graph = Graph()
+        self.processing_stats = defaultdict(int)
+        
+        # Parse objectives
+        objectives = project_payload.get("objectives", {})
+        logger.info(f"Objectives: {objectives}")
+        
+        # Phase 1: Process uploaded files and create initial nodes
+        files = project_payload.get("files", [])
+        print(f"Processing {len(files)} uploaded files")
+        for file_data in files:
+            try:
+                file_type = file_data.get("type", "").lower()
+                content = file_data.get("content", "")
+                
+                if file_type == "cif":
+                    # Parse CIF
+                    print(f"TOOL CALL: parse_cif_file(content_length={len(content)})")
+                    parsed = parse_cif_file(content)
+                    print(f"TOOL RESULT: parse_cif_file returned keys={list(parsed.keys())}")
+                    
+                    print(f"TOOL CALL: summarize_parsed(parsed_keys={list(parsed.keys())})")
+                    summary = summarize_parsed(parsed)
+                    print(f"TOOL RESULT: summarize_parsed returned '{summary[:50]}...'")
+                    
+                    # Create node
+                    node_id = generate_node_id("cif", summary, parsed.get("entry_id", "unknown"))
+                    node = Node(
+                        id=node_id,
+                        type="structure",
+                        label=str(parsed.get("entry_id", "Unknown")),
+                        metadata={
+                            "parsed": parsed,
+                            "content_summary": summary,
+                            "source": "uploaded_file",
+                            "file_type": file_type
+                        }
+                    )
+                    
+                    self.graph.add_node(node)
+                    self.processing_stats["nodes_created"] += 1
+                    
+                    logger.info(f"Created node {node.id}: {summary}")
+                    
+            except Exception as e:
+                logger.error(f"Error processing file: {str(e)}")
+                self.processing_stats["processing_errors"] += 1
+        
+        # Phase 2: Embed all nodes
+        print("=== PHASE 2: EMBEDDING ALL NODES ===")
+        for node in list(self.graph.nodes.values()):
+            try:
+                print(f"TOOL CALL: embed_if_missing(node_id={node.id}, has_embedding={node.embedding is not None})")
+                embedding = embed_if_missing(node, dummy_embedder)
+                print(f"TOOL RESULT: embed_if_missing returned embedding_length={len(embedding) if embedding else 0}")
+                if embedding:
+                    node.embedding = embedding
+            except Exception as e:
+                logger.error(f"Error embedding node {node.id}: {str(e)}")
+        
+        # Phase 3: Deterministic expansion phase (NO LLM)
+        print("=== PHASE 3: DETERMINISTIC EXPANSION ===")
+        self.expand_unexpanded_nodes()
+        
+        # Phase 4: LLM reasoning phase (analyze expanded graph)
+        print("=== PHASE 4: LLM REASONING PHASE ===")
+        for node in self.graph.nodes.values():
+            try:
+                # Validate against objectives (for analysis, not for expansion decisions)
+                print(f"TOOL CALL: validate_against_objectives(node_id={node.id}, objectives_keys={list(objectives.keys())})")
+                validation = validate_against_objectives(node, objectives)
+                print(f"TOOL RESULT: validate_against_objectives returned score={validation.get('relevance_score')}, reasons_count={len(validation.get('reasons', []))}")
+                node.metadata["relevance"] = validation
+                
+                logger.info(f"Node {node.id}: relevance={validation.get('relevance_score', 0):.2f}")
+                
+            except Exception as e:
+                logger.error(f"Error validating node {node.id}: {str(e)}")
+        
+        # Compute final metrics
+        total_nodes = len(self.graph.nodes)
+        total_edges = len(self.graph.edges)
+        expanded_nodes = sum(
+            1 for n in self.graph.nodes.values() 
+            if n.metadata.get("expanded", {}).get("cif", False) or n.metadata.get("expanded", {}).get("fasta", False)
+        )
+        
+        coverage = {
+            "total_nodes": total_nodes,
+            "total_edges": total_edges,
+            "expanded_nodes": expanded_nodes,
+            "retrieval_iterations": 1,
+            "stop_criteria_met": True
+        }
+        
+        # Update processing stats
+        self.processing_stats.update(coverage)
+        
+        # Return graph with metadata
+        graph_json = self.graph.as_json()
+        graph_json["metadata"] = {
+            "processing_stats": dict(self.processing_stats),
+            "objectives": objectives,
+            "pipeline_version": "deterministic_v2"
+        }
+        
+        logger.info(f"Pipeline complete: {coverage}")
+        print(f"=== AGENT PIPELINE COMPLETE: Returning graph with {len(graph_json['nodes'])} nodes and {len(graph_json['edges'])} edges ===")
+        return graph_json
+    
+    def expand_unexpanded_nodes(self):
+        """Deterministically expand all nodes that have embeddings and haven't been expanded yet."""
+        print("=== STARTING DETERMINISTIC EXPANSION: expand_unexpanded_nodes ===")
+        from agent.tools.retriever import retrieve_candidates
+        from agent.tools.feature_mapper import map_score_explanation_to_features
+        from agent.tools.edge_creator import create_edge_with_evidence
+        
+        expanded_count = 0
+        
+        for node in list(self.graph.nodes.values()):
+            if not node.embedding:
+                continue
+                
+            expanded = node.metadata.setdefault("expanded", {})
+            
+            # Expand CIF structures if not already expanded
+            if node.type == "structure" and not expanded.get("cif", False):
+                print(f"TOOL CALL: retrieve_candidates for CIF (node_id={node.id}, embedding_length={len(node.embedding)})")
+                results = retrieve_candidates(
+                    node.embedding, 
+                    collections=["structures"], 
+                    n=50
+                )
+                print(f"TOOL RESULT: retrieve_candidates returned {len(results)} CIF results")
+                
+                self._insert_results(node, results, edge_type="structure_similarity")
+                expanded["cif"] = True
+                expanded_count += 1
+            
+            # Expand FASTA sequences if not already expanded
+            if node.type == "sequence" and not expanded.get("fasta", False):
+                print(f"TOOL CALL: retrieve_candidates for FASTA (node_id={node.id}, embedding_length={len(node.embedding)})")
+                results = retrieve_candidates(
+                    node.embedding, 
+                    collections=["uniprot_sequences"], 
+                    n=50
+                )
+                print(f"TOOL RESULT: retrieve_candidates returned {len(results)} FASTA results")
+                
+                self._insert_results(node, results, edge_type="sequence_similarity")
+                expanded["fasta"] = True
+                expanded_count += 1
+        
+        print(f"=== DETERMINISTIC EXPANSION COMPLETE: Expanded {expanded_count} nodes ===")
+    
+    def _insert_results(self, source_node, results, edge_type):
+        """Helper method to insert retrieval results into the graph."""
+        from agent.tools.feature_mapper import map_score_explanation_to_features
+        from agent.tools.edge_creator import create_edge_with_evidence
+        
+        for candidate in results:
+            try:
+                # Map features
+                features = map_score_explanation_to_features(candidate)
+                
+                # Create or update candidate node
+                cand_id = str(candidate["node_id"])
+                if cand_id not in self.graph.nodes:
+                    cand_node = Node(
+                        id=cand_id,
+                        type="structure" if candidate["collection"] == "structures" else "sequence",
+                        label=cand_id,
+                        metadata={
+                            "source": "retrieval",
+                            "collection": candidate["collection"],
+                            "score_explanation": candidate.get("score_explanation"),
+                            "biological_features": candidate.get("biological_features", {}),
+                            "provenance": {
+                                "query_vector_hash": candidate["query_vector_hash"],
+                                "raw_qdrant_result": candidate
+                            }
+                        }
+                    )
+                    self.graph.add_node(cand_node)
+                    self.processing_stats["retrieved_nodes"] += 1
+                
+                # Create edge
+                edge = create_edge_with_evidence(
+                    from_node_id=source_node.id,
+                    to_node_id=cand_id,
+                    score=candidate["score"],
+                    evidence=features,
+                    provenance={
+                        "collection": candidate["collection"],
+                        "id": cand_id,
+                        "query_vector_hash": candidate["query_vector_hash"]
+                    }
+                )
+                
+                self.graph.add_edge(edge)
+                self.processing_stats["edges_created"] += 1
+                
+            except Exception as e:
+                logger.error(f"Error processing candidate {candidate.get('node_id')}: {str(e)}")
+    
+    def expand_node_direction(self, node_id: str, direction: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Expand a specific node in a given direction."""
+        print(f"=== STARTING NODE EXPANSION: expand_node_direction(node_id={node_id}, direction={direction}) ===")
+        from agent.tools.retriever import retrieve_candidates
+        from agent.tools.feature_mapper import map_score_explanation_to_features
+        from agent.tools.edge_creator import create_edge_with_evidence
+        
+        if params is None:
+            params = {}
+            
+        node = self.graph.nodes.get(node_id)
+        if not node:
+            return {"error": f"Node {node_id} not found"}
+        
+        results = []
+        
+        if direction == "similar_proteins":
+            # Get embedding
+            embedding = node.embedding
+            if not embedding:
+                return {"error": f"Node {node_id} has no embedding"}
+            
+            # Get feature mask from node's top dimensions if available
+            feature_mask = params.get("feature_mask")
+            if not feature_mask and node.metadata.get("score_explanation"):
+                # Build mask from top dimensions
+                top_dims = node.metadata["score_explanation"].get("top_dimensions", [])
+                if top_dims:
+                    # Simple mask: boost top dimensions
+                    feature_mask = [0.1] * 1280  # Default low weight
+                    for dim_info in top_dims[:5]:  # Top 5 dimensions
+                        dim = dim_info.get("dimension", 0)
+                        if 0 <= dim < 1280:
+                            feature_mask[dim] = 1.0
+            
+            # Retrieve
+            print(f"TOOL CALL: retrieve_candidates(embedding_length={len(embedding)}, collections={params.get('collections', ['structures', 'uniprot_sequences'])}, n={params.get('n', 20)}, has_feature_mask={feature_mask is not None})")
+            candidates = retrieve_candidates(
+                embedding,
+                collections=params.get("collections", ["structures", "uniprot_sequences"]),
+                n=params.get("n", 20),
+                feature_mask=feature_mask
+            )
+            print(f"TOOL RESULT: retrieve_candidates returned {len(candidates)} candidates")
+            
+            # Process results
+            for candidate in candidates:
+                print(f"TOOL CALL: map_score_explanation_to_features(candidate_id={candidate.get('node_id')})")
+                features = map_score_explanation_to_features(candidate)
+                print(f"TOOL RESULT: map_score_explanation_to_features returned {len(features)} features")
+                
+                # Create node if doesn't exist
+                cand_id = candidate["node_id"]
+                if cand_id not in self.graph.nodes:
+                    cand_node = Node(
+                        id=cand_id,
+                        type="structure" if candidate["collection"] == "structures" else "sequence",
+                        label=cand_id,
+                        metadata={
+                            "source": "expansion",
+                            "collection": candidate["collection"],
+                            "score_explanation": candidate.get("score_explanation"),
+                            "biological_features": candidate.get("biological_features", {})
+                        }
+                    )
+                    self.graph.add_node(cand_node)
+                
+                # Create edge
+                print(f"TOOL CALL: create_edge_with_evidence(from_id={node_id}, to_id={cand_id}, score={candidate['score']}, features_count={len(features)})")
+                edge = create_edge_with_evidence(
+                    from_node_id=node_id,
+                    to_node_id=cand_id,
+                    score=candidate["score"],
+                    evidence=features,
+                    provenance={
+                        "collection": candidate["collection"],
+                        "id": cand_id,
+                        "query_vector_hash": candidate["query_vector_hash"],
+                        "expansion_direction": direction
+                    }
+                )
+                print(f"TOOL RESULT: create_edge_with_evidence created edge with type={edge.type}")
+                
+                self.graph.add_edge(edge)
+                results.append({
+                    "candidate_id": cand_id,
+                    "score": candidate["score"],
+                    "features": features
+                })
+                
+        elif direction == "papers":
+            # Stub for paper retrieval
+            results = [{"stub": "paper_retrieval_not_implemented"}]
+        else:
+            return {"error": f"Unknown direction: {direction}"}
+        
+        print(f"=== NODE EXPANSION COMPLETE: Created {len(results)} edges for {direction} ===")
+        return {
+            "expanded_node": node_id,
+            "direction": direction,
+            "results": results,
+            "edges_created": len(results)
+        }
     
     def _create_initial_nodes(self, data_pool: List[Any]):
         """Create initial graph nodes from data pool entries."""
@@ -317,6 +661,7 @@ class MultiModalRetrievalAgent:
             
             # Get retrieval strategy from LLM
             strategy = plan_retrieval(current_nodes, self.objectives)
+            logger.info(f"Iteration {iteration + 1} - Retrieval Strategy: continue={strategy.get('continue_retrieval', True)}, queries={strategy.get('suggested_queries', [])}")
             
             if strategy.get("stop_criteria_met", False) or not strategy.get("continue_retrieval", True):
                 logger.info(f"Stopping retrieval at iteration {iteration + 1}")
@@ -330,9 +675,11 @@ class MultiModalRetrievalAgent:
     def _execute_retrieval_strategy(self, strategy: Dict[str, Any]):
         """Execute the retrieval strategy."""
         suggested_queries = strategy.get("suggested_queries", [])
+        logger.info(f"Executing retrieval for queries: {suggested_queries[:3]}")
         
         for query in suggested_queries[:3]:  # Limit to 3 queries per iteration
             try:
+                logger.info(f"Processing query: {query}")
                 # Create seed vector from query (placeholder implementation)
                 seed_vector = create_embedding_placeholder(query)
                 
@@ -438,7 +785,7 @@ class MultiModalRetrievalAgent:
                 id=node.id,
                 type=NodeType(node.type) if node.type in [nt.value for nt in NodeType] else NodeType.CONCEPT,
                 label=node.label,
-                embedding=node.embedding,
+                embedding=None,
                 metadata=node.metadata,
                 content_summary=node.metadata.get("content_summary", ""),
                 relevance_score=node.metadata.get("relevance_score", 0)
