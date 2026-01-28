@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from typing import Any, Dict, Optional, List, Tuple
 from openai import OpenAI
 from agent.tools.vector_search import retrieve_similar_cif, retrieve_similar_fasta
-from agent.tools import db_query
+from agent.tools import web_search
 from agent.tools.file_parser import parse_data_entry
 from agent.tools.llm_analysis import sub_llm_tools, analyze_relevance, find_relationships, extract_entities, plan_retrieval
 from graph.graph_objects import Graph, Node, Edge
@@ -123,8 +123,8 @@ def tool_resolve_protein_name(state: Dict[str, Any]) -> Dict[str, Any]:
     if not name:
         return {"error": "missing name"}
     resolved = None
-    if hasattr(db_query, "resolve_protein_name"):
-        resolved = db_query.resolve_protein_name(name)
+    if hasattr(web_search, "resolve_protein_name"):
+        resolved = web_search.resolve_protein_name(name)
     return {"name": name, "resolved": resolved}
 
 
@@ -218,9 +218,7 @@ class MultiModalRetrievalAgent:
         """New simplified pipeline for processing project files with deterministic logic."""
         print("=== STARTING AGENT PIPELINE: run_single_job ===")
         from agent.tools.parser.cif_parser import parse_cif_file
-        from agent.tools.summarizer import summarize_parsed
         from agent.tools.embedder import embed_if_missing, dummy_embedder
-        from agent.tools.validator import validate_against_objectives
         from utils.processing import generate_node_id
         
         logger.info("Starting new deterministic pipeline")
@@ -839,8 +837,8 @@ class MultiModalRetrievalAgent:
         return mapping.get(entry_type.lower(), "concept")
 
     def resolve_protein_name(self, name: str) -> Optional[str]:
-        if hasattr(db_query, "resolve_protein_name"):
-            return db_query.resolve_protein_name(name)
+        if hasattr(web_search, "resolve_protein_name"):
+            return web_search.resolve_protein_name(name)
         return None
 
     def retrieve_and_update(self, retrieval_type: str, seed_vector: List[float], n: int = 10, feature_mask: Optional[List[float]] = None):

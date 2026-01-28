@@ -56,6 +56,7 @@ def _search_qdrant(collection, seed_vector, n, feature_mask):
             "node_id": node_id,
             "score": score,
             # "score_explanation": score_explanation,
+            # something of type list[str]
             "biological_features": list(mapped_features.values())[9], # 9 is arbitrary, didn't put 0 because for our small data it was too repetitive
         })
 
