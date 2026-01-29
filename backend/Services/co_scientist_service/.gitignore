@@ -1,3 +1,25 @@
 data/
 co_scientist_venv/
+venv/
 sample_input.json
+
+# Logs
+*.log
+nohup.out
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Cache
+.cache/

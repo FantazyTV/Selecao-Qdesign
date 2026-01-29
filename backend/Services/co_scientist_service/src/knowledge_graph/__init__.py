@@ -6,6 +6,7 @@ This module provides:
 2. KG Indexing - Build efficient in-memory indexes for traversal
 3. Path Finding - Heuristic pathfinding with randomization (SciAgents-style)
 4. Subgraph Extraction - Extract focused reasoning subgraphs
+5. Multi-Path Exploration - Rich subgraphs using multiple strategies
 """
 
 from .models import KGNode, KGEdge, KnowledgeGraph
@@ -22,6 +23,7 @@ from .path_strategies import (
 from .pathfinding import PathFinder
 from .reasoning_subgraph import ReasoningSubgraph
 from .subgraph import SubgraphExtractor
+from .multi_path import MultiPathSubgraph, MultiPathExtractor
 
 __all__ = [
     # Models
@@ -44,4 +46,7 @@ __all__ = [
     # Subgraph
     "ReasoningSubgraph",
     "SubgraphExtractor",
+    # Multi-Path
+    "MultiPathSubgraph",
+    "MultiPathExtractor",
 ]
