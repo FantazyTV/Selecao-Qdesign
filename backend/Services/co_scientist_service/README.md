@@ -284,15 +284,52 @@ OPENROUTER_APP_TITLE=Co-Scientist
 
 ---
 
-## Usage
+## Installation & Setup
 
-### Running the Service
+### Prerequisites
+
+- Python 3.12+
+- [uv](https://github.com/astral-sh/uv) (fast Python package manager)
+
+### 1. Create Virtual Environment
 
 ```bash
 cd co_scientist_service
+uv venv co_scientist_venv
+```
+
+### 2. Activate Virtual Environment
+
+```bash
 source co_scientist_venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+uv pip install -r requirements.txt
+```
+
+### 4. Configure Environment
+
+Create a `.env` file with your API keys:
+
+```bash
+cp .env.example .env
+# Edit .env with your OpenRouter API key
+```
+
+### 5. Run the Service
+
+```bash
 uvicorn src.main:app --reload --port 8000
 ```
+
+The API will be available at `http://localhost:8000`.
+
+---
+
+## Usage
 
 ### Example API Calls
 
