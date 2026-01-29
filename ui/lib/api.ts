@@ -1,5 +1,3 @@
-// API client for communicating with the NestJS backend
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 const SEARCH_API_URL = process.env.NEXT_PUBLIC_SEARCH_API_URL || 'http://localhost:8000';
 
@@ -154,6 +152,12 @@ export const projectsApi = {
   deleteComment: (projectId: string, itemId: string, commentId: string) =>
     request<{ project: any }>(`/projects/${projectId}/data-pool/${itemId}/comments/${commentId}`, { 
       method: 'DELETE' 
+    }),
+
+    addNodeNote: (projectId: string, nodeId: string, text: string) =>
+    request<{ project: any }>(`/projects/${projectId}/knowledge-graph/nodes/${nodeId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
     }),
 
   /**

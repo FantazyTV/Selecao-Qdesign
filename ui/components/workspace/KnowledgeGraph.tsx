@@ -424,26 +424,15 @@ export function KnowledgeGraphView({
   const handleAddNote = async () => {
     if (!selectedNode || !newNote.trim()) return;
     setNoteSaving(true);
-    // Only update the notes field
-    const newNotes = [
-      ...selectedNode.notes,
-      {
-        id: uuidv4(),
-        text: newNote,
-        author: "current-user",
-        createdAt: new Date().toISOString(),
-      },
-    ];
     try {
       const projectId = getProjectIdFromUrl();
-      await projectsApi.updateNode(
-        projectId,
-        selectedNode.id,
-        { notes: newNotes }
-      );
-      const updatedNode = { ...selectedNode, notes: newNotes };
-      onNodeUpdate(updatedNode);
-      setSelectedNode(updatedNode);
+      const res = await projectsApi.addNodeNote(projectId, selectedNode.id, newNote);
+      // Find the updated node from the returned project
+      const updatedNode = res.project.knowledgeGraph.nodes.find((n: any) => n.id === selectedNode.id);
+      if (updatedNode) {
+        onNodeUpdate(updatedNode);
+        setSelectedNode(updatedNode);
+      }
       setNewNote("");
     } finally {
       setNoteSaving(false);

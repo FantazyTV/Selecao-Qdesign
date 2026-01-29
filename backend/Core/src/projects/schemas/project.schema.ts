@@ -73,10 +73,10 @@ export const GraphNodeNoteSchema = SchemaFactory.createForClass(GraphNodeNote);
 
 @Schema({ _id: false })
 export class GraphNode {
-  @Prop({ required: true })
+  @Prop({ type: String, required: true })
   id: string;
 
-  @Prop({ required: true, enum: ['pdb', 'pdf', 'image', 'sequence', 'text', 'retrieved', 'annotation'] })
+  @Prop({ required: true, enum: ['pdb', 'pdf', 'image', 'sequence', 'text', 'annotation'] })
   type: string;
 
   @Prop({ required: true })
@@ -91,10 +91,10 @@ export class GraphNode {
   @Prop()
   fileUrl?: string;
 
-  @Prop({ type: { x: Number, y: Number }, required: true })
+  @Prop({ type: { x: Number, y: Number }, required: false })
   position: { x: number; y: number };
 
-  @Prop({ required: true, enum: ['high', 'medium', 'low', 'untrusted'], default: 'medium' })
+  @Prop({ required: true, enum: ['high', 'medium', 'low', 'untrusted'], default: 'high' })
   trustLevel: string;
 
   @Prop({ type: [GraphNodeNoteSchema], default: [] })
