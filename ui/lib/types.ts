@@ -61,7 +61,7 @@ export interface GraphEdge {
   correlationType: "similar" | "cites" | "contradicts" | "supports" | "derived" | "custom";
   strength: number;
   explanation?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, any>;
 }
 
 export interface KnowledgeGraph {

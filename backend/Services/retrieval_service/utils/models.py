@@ -13,34 +13,44 @@ class DataEntryType(str, Enum):
     FASTA = "fasta"
     UNKNOWN = "unknown"
 
-class Comment(BaseModel):
+class DataPoolComment(BaseModel):
     """Model for comments on data entries."""
     id: str
     text: str
     author: str
     created_at: datetime
     
-class DataEntry(BaseModel):
+class DataPoolItem(BaseModel):
     """Model for individual data entries in the data pool."""
-    id: str = Field(..., alias="_id")
-    type: DataEntryType
+    _id: str
+    type: str  # 'pdb', 'pdf', 'image', 'sequence', 'text', 'other'
     name: str
-    description: Optional[str] = ""
-    content: str  # Base64 encoded or raw text content
-    addedBy: str
+    description: Optional[str] = None
+    content: Optional[str] = None
+    fileUrl: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    addedBy: str  # Will be ObjectId as string
     addedAt: datetime
-    comments: List[Comment] = []
-    
-    class Config:
-        validate_by_name = True
+    comments: List[DataPoolComment] = []
 
-class DataPoolRequest(BaseModel):
-    """Model for the complete request containing data pool and objectives."""
-    dataPool: List[DataEntry]
+class ProcessingRequest(BaseModel):
+    """Model for the simplified processing request."""
+    name: str
     mainObjective: str
     secondaryObjectives: List[str] = []
-    Notes: List[str] = []
-    Constraints: List[str] = []
+    constraints: List[str] = []
+    notes: List[str] = []
+    description: Optional[str] = None
+    dataPool: List[DataPoolItem]
+    
+    # Legacy support
+    @property
+    def Notes(self) -> List[str]:
+        return self.notes
+    
+    @property 
+    def Constraints(self) -> List[str]:
+        return self.constraints
 
 class NodeType(str, Enum):
     """Graph node types."""
@@ -94,4 +104,4 @@ class GraphAnalysisResponse(BaseModel):
     graphs: List[GraphData]
     summary: str
     processing_stats: Dict[str, Any] = {}
-    recommendations: List[str] = []
+    notes: List[str] = []

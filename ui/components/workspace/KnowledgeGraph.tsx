@@ -504,7 +504,15 @@ export function KnowledgeGraphView({
   return (
     <div className="flex h-full">
       {/* Graph Canvas */}
-      <div className="flex-1 bg-gray-900">
+      <div className="flex-1 bg-gray-900 relative">
+        {loading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <div className="flex flex-col items-center">
+              <span className="h-8 w-8 mb-2 animate-spin border-4 border-t-transparent border-green-400 rounded-full inline-block" />
+              <span className="text-green-200 font-semibold">Retrieving knowledge graph...</span>
+            </div>
+          </div>
+        )}
         <ExpandPromptContext.Provider value={{ expandedNodeId, setExpandedNodeId }}>
           <ReactFlow
             nodes={nodes}
@@ -554,7 +562,9 @@ export function KnowledgeGraphView({
             {!isReadOnly && (
               <Button
                 size="sm"
+                disabled={loading}
                 onClick={async () => {
+                  setLoading(true);
                   try {
                     const projectId = getProjectIdFromUrl();
                     // Fetch the full project (for up-to-date data)
@@ -571,14 +581,33 @@ export function KnowledgeGraphView({
                       ...rest
                     } = project;
                     await projectsApi.retrieveProject(projectId, rest);
-                    alert('Retrieve request sent!');
+                    // Poll for updated graph (every 5s, up to 4min)
+                    let updated = false;
+                    for (let i = 0; i < 48; i++) {
+                      await new Promise(res => setTimeout(res, 5000));
+                      const pollRes = await projectsApi.get(projectId);
+                      if (pollRes.project && pollRes.project.knowledgeGraph && Array.isArray(pollRes.project.knowledgeGraph.nodes) && pollRes.project.knowledgeGraph.nodes.length > 0) {
+                        setGraph(pollRes.project.knowledgeGraph);
+                        updated = true;
+                        break;
+                      }
+                    }
+                    if (!updated) {
+                      alert('Timed out waiting for retrieval result.');
+                    }
                   } catch (err) {
                     alert('Failed to send retrieve request.');
+                  } finally {
+                    setLoading(false);
                   }
                 }}
               >
-                <Box className="mr-2 h-4 w-4" />
-                Retrieve
+                {loading ? (
+                  <span className="mr-2 h-4 w-4 animate-spin border-2 border-t-transparent border-white rounded-full inline-block" />
+                ) : (
+                  <Box className="mr-2 h-4 w-4" />
+                )}
+                {loading ? 'Retrieving...' : 'Retrieve'}
               </Button>
             )}
           </Panel>
@@ -784,7 +813,7 @@ export function KnowledgeGraphView({
                   <div className="space-y-1">
                     <Label className="text-xs text-gray-300">Biological Features: </Label>
                     <span className="text-sm text-gray-400">
-                      {selectedEdge.metadata.provenance
+                      {selectedEdge.metadata && selectedEdge.metadata.provenance
                         ? selectedEdge.metadata.provenance.biological_features.slice(0, 2).join(" and ")
                         : "-"}
                     </span>

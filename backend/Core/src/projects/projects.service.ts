@@ -348,7 +348,7 @@ export class ProjectsService {
   }
     // --- Project Retrieve Logic ---
   async retrieveProject(projectId: string, payload: any, userId: string): Promise<void> {
-    // Optionally, validate user access to the project
+    // Validate user access to the project
     const project = await this.projectModel.findById(projectId).exec();
     if (!project) throw new NotFoundException('Project not found');
     const member = project.members.find(m => {
@@ -357,38 +357,59 @@ export class ProjectsService {
     });
     if (!member) throw new ForbiddenException('Access denied');
 
-
     // Only include allowed fields in the output payload
     const projectObj = project.toObject();
-    const {
-      hash, owner, members, currentMode, checkpoints, __v, _id, ...rest
-    } = projectObj;
+    const { hash, owner, members, currentMode, checkpoints, knowledgeGraph, coScientistSteps, __v, _id, ...rest } = projectObj;
     const outputPayload = { ...rest };
 
-    // Log to terminal
-    // eslint-disable-next-line no-console
-    console.log('[RETRIEVE PAYLOAD] Project data:', JSON.stringify(outputPayload, null, 2));
+    // Send payload to microservice
+    const axios = (await import('axios')).default;
+    const dotenv = await import('dotenv');
+    dotenv.config();
+    const apiUrl = process.env.RETRIEVE_API_URL;
+    if (!apiUrl) throw new Error('RETRIEVE_API_URL not set in .env');
 
-    // Write the filtered payload to a JSON file
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const outputDir = path.join(process.cwd(), 'retrieve_payloads');
+    let response;
     try {
-      await fs.mkdir(outputDir, { recursive: true });
-      const fileName = `payload_${projectId}_${Date.now()}.json`;
-      const filePath = path.join(outputDir, fileName);
-      await fs.writeFile(filePath, JSON.stringify(outputPayload, null, 2), 'utf-8');
-      // eslint-disable-next-line no-console
-      console.log(`[RETRIEVE PAYLOAD] Written to: ${filePath}`);
+      response = await axios.post(apiUrl, outputPayload, { timeout: 10000 });
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error('[RETRIEVE PAYLOAD] Error writing payload to file:', err);
-      throw new Error('Failed to write payload to file');
+      console.error('[RETRIEVE PAYLOAD] Error sending to microservice:', err);
+      throw new Error('Failed to send payload to microservice');
     }
-    // In the future: call external API endpoint (URL from .env)
-    // Example:
-    // const apiUrl = process.env.RETRIEVE_API_URL;
-    // await axios.post(apiUrl, outputPayload);
+
+    // Poll for result (assume microservice returns a jobId or similar)
+    let jobId = response.data.jobId || response.data.id || response.data.job_id;
+    if (!jobId) throw new Error('Microservice did not return a jobId');
+
+    // Polling loop (every 5s, up to 4min)
+    let result = null;
+    const pollUrl = apiUrl.replace(/\/?$/, '/') + 'result/' + jobId;
+    const maxTries = 36; // 3min (5s interval)
+    for (let i = 0; i < maxTries; i++) {
+      try {
+        const pollRes = await axios.get(pollUrl, { timeout: 10000 });
+        if (pollRes.data && pollRes.data.status === 'done' && pollRes.data.graph) {
+          result = pollRes.data.graph;
+          break;
+        }
+        if (pollRes.data && pollRes.data.status === 'failed') {
+          throw new Error('Microservice job failed');
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[RETRIEVE PAYLOAD] Polling error:', err);
+      }
+      await new Promise(res => setTimeout(res, 5000));
+    }
+    if (!result) throw new Error('Timed out waiting for microservice result');
+
+    // Override knowledgeGraph in project
+    project.knowledgeGraph = result;
+    await project.save();
+    // Optionally, emit event or notification here
+    // eslint-disable-next-line no-console
+    console.log('[RETRIEVE PAYLOAD] Knowledge graph updated for project', projectId);
   }
 
     // --- Fetch and cache CIF content for a node ---
