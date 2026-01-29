@@ -134,4 +134,36 @@ export class ProjectsController {
     );
     return { project };
   }
+
+    // --- Knowledge Graph Node CRUD ---
+  @Patch(':id/knowledge-graph/nodes/:nodeId')
+  async updateKnowledgeGraphNode(
+    @Param('id') id: string,
+    @Param('nodeId') nodeId: string,
+    @Body() update: Partial<any>,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const project = await this.projectsService.updateNode(id, nodeId, update, user.userId);
+    return { project };
+  }
+
+  @Delete(':id/knowledge-graph/nodes/:nodeId')
+  async deleteKnowledgeGraphNode(
+    @Param('id') id: string,
+    @Param('nodeId') nodeId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const project = await this.projectsService.deleteNode(id, nodeId, user.userId);
+    return { project };
+  }
+  @Post(':id/knowledge-graph/nodes/:nodeId/notes')
+  async addKnowledgeGraphNodeNote(
+    @Param('id') id: string,
+    @Param('nodeId') nodeId: string,
+    @Body() body: { text: string },
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const project = await this.projectsService.addNodeNote(id, nodeId, { text: body.text }, user.userId);
+    return { project };
+  }
 }

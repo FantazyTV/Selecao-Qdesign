@@ -239,4 +239,74 @@ export class ProjectsService {
     if (ownerId !== userId) throw new ForbiddenException();
     await project.deleteOne();
   }
+    // --- Knowledge Graph Node Note CRUD ---
+  async addNodeNote(projectId: string, nodeId: string, note: { text: string }, userId: string): Promise<ProjectDocument> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) throw new NotFoundException('Project not found');
+
+    const member = project.members.find(m => {
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
+    if (!member || member.role === 'viewer') throw new ForbiddenException('Access denied');
+
+    const node = project.knowledgeGraph.nodes.find(n => n.id === nodeId);
+    if (!node) throw new NotFoundException('Node not found');
+
+    // Add note with required fields
+    node.notes.push({
+      id: uuidv4(),
+      text: note.text,
+      author: new Types.ObjectId(userId),
+      createdAt: new Date(),
+    });
+
+    // Ensure edges are not corrupted
+    project.knowledgeGraph.edges = project.knowledgeGraph.edges.filter(e =>
+      e && e.id && e.source && e.target && e.correlationType && typeof e.strength === 'number'
+    );
+
+    await project.save();
+    return this.findById(projectId, userId);
+  }
+  // --- Knowledge Graph Node CRUD ---
+  async updateNode(projectId: string, nodeId: string, update: Partial<any>, userId: string): Promise<ProjectDocument> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) throw new NotFoundException('Project not found');
+
+    const member = project.members.find(m => {
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
+    if (!member || member.role === 'viewer') throw new ForbiddenException('Access denied');
+
+    const node = project.knowledgeGraph.nodes.find(n => n.id === nodeId);
+    if (!node) throw new NotFoundException('Node not found');
+
+    // Prevent id from being updated or removed
+    const { id, ...rest } = update;
+    Object.assign(node, rest);
+    await project.save();
+    return this.findById(projectId, userId);
+  }
+
+  async deleteNode(projectId: string, nodeId: string, userId: string): Promise<ProjectDocument> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) throw new NotFoundException('Project not found');
+
+    const member = project.members.find(m => {
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
+    if (!member || member.role === 'viewer') throw new ForbiddenException('Access denied');
+
+    const nodeIndex = project.knowledgeGraph.nodes.findIndex(n => n.id === nodeId);
+    if (nodeIndex === -1) throw new NotFoundException('Node not found');
+
+    project.knowledgeGraph.nodes.splice(nodeIndex, 1);
+    // Optionally, remove edges connected to this node
+    project.knowledgeGraph.edges = project.knowledgeGraph.edges.filter(e => e.source !== nodeId && e.target !== nodeId);
+    await project.save();
+    return this.findById(projectId, userId);
+  }
 }
