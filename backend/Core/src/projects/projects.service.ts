@@ -362,39 +362,50 @@ export class ProjectsService {
     const { hash, owner, members, currentMode, checkpoints, knowledgeGraph, coScientistSteps, __v, _id, ...rest } = projectObj;
     const outputPayload = { ...rest };
 
-    // Send payload to microservice
+    // Send payload to async /process endpoint
     const axios = (await import('axios')).default;
     const dotenv = await import('dotenv');
     dotenv.config();
-    const apiUrl = process.env.RETRIEVE_API_URL;
-    if (!apiUrl) throw new Error('RETRIEVE_API_URL not set in .env');
+    const baseUrl = process.env.RETRIEVE_API_URL;
+    if (!baseUrl) throw new Error('RETRIEVE_API_URL not set in .env');
+    const processUrl = baseUrl.replace(/\/?$/, '/') + 'retrieval/process';
+
+    console.log(processUrl);
 
     let response;
     try {
-      response = await axios.post(apiUrl, outputPayload, { timeout: 10000 });
+      response = await axios.post(processUrl, outputPayload, { timeout: 20000 });
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error('[RETRIEVE PAYLOAD] Error sending to microservice:', err);
-      throw new Error('Failed to send payload to microservice');
+      console.error('[RETRIEVE PAYLOAD] Error sending to async /retireval/process:', err);
+      throw new Error('Failed to send payload to async retrieval service');
     }
 
-    // Poll for result (assume microservice returns a jobId or similar)
-    let jobId = response.data.jobId || response.data.id || response.data.job_id;
-    if (!jobId) throw new Error('Microservice did not return a jobId');
+    // Get jobId from response
+    const jobId = response.data.jobId || response.data.id || response.data.job_id;
+    if (!jobId) throw new Error('Async retrieval service did not return a jobId');
 
-    // Polling loop (every 5s, up to 4min)
-    let result = null;
-    const pollUrl = apiUrl.replace(/\/?$/, '/') + 'result/' + jobId;
-    const maxTries = 36; // 3min (5s interval)
-    for (let i = 0; i < maxTries; i++) {
+    // Poll for job completion using /status/{jobId}
+    const statusUrl = baseUrl.replace(/\/?$/, '/') + 'retrieval/status/' + jobId;
+    const resultUrl = baseUrl.replace(/\/?$/, '/') + 'retrieval/result/' + jobId;
+    const maxPolls = 24; // 2 minutes at 5s intervals
+    let pollCount = 0;
+    let status = null;
+    let failed = false;
+    while (pollCount < maxPolls) {
+      pollCount++;
       try {
-        const pollRes = await axios.get(pollUrl, { timeout: 10000 });
-        if (pollRes.data && pollRes.data.status === 'done' && pollRes.data.graph) {
-          result = pollRes.data.graph;
-          break;
-        }
-        if (pollRes.data && pollRes.data.status === 'failed') {
-          throw new Error('Microservice job failed');
+        const statusRes = await axios.get(statusUrl, { timeout: 10000 });
+        if (statusRes.status === 200 && statusRes.data) {
+          status = statusRes.data.status;
+          if (status === 'completed') {
+            break;
+          } else if (status === 'failed') {
+            failed = true;
+            // eslint-disable-next-line no-console
+            console.error('[RETRIEVE PAYLOAD] Job failed:', statusRes.data.error);
+            throw new Error('Async retrieval job failed: ' + (statusRes.data.error || 'Unknown error'));
+          }
         }
       } catch (err) {
         // eslint-disable-next-line no-console
@@ -402,12 +413,37 @@ export class ProjectsService {
       }
       await new Promise(res => setTimeout(res, 5000));
     }
-    if (!result) throw new Error('Timed out waiting for microservice result');
+    if (failed) throw new Error('Async retrieval job failed');
+    if (status !== 'completed') throw new Error('Timed out waiting for async retrieval job completion');
 
-    // Override knowledgeGraph in project
-    project.knowledgeGraph = result;
+    // Fetch result from /result/{jobId}
+    let resultData;
+    try {
+      const resultRes = await axios.get(resultUrl, { timeout: 20000 });
+      if (resultRes.status === 200 && resultRes.data && resultRes.data.graph) {
+        resultData = resultRes.data;
+      } else {
+        throw new Error('Result missing graph data');
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[RETRIEVE PAYLOAD] Error fetching result:', err);
+      throw new Error('Failed to fetch result from async retrieval service');
+    }
+
+    // Persist the returned graph to the project
+    project.knowledgeGraph = resultData.graph;
     await project.save();
-    // Optionally, emit event or notification here
+
+    // Emit socket event to notify frontend
+    try {
+      const { emitProjectUpdate } = await import('../socket-emitter.js');
+      emitProjectUpdate(projectId, project.toObject());
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[RETRIEVE PAYLOAD] Error emitting project:update event:', err);
+    }
+
     // eslint-disable-next-line no-console
     console.log('[RETRIEVE PAYLOAD] Knowledge graph updated for project', projectId);
   }

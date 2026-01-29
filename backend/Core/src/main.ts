@@ -1,7 +1,10 @@
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
+import { Server as IOServer } from 'socket.io';
+import { setSocketServer } from './socket-emitter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -28,9 +31,26 @@ async function bootstrap() {
   // Global prefix for API
   app.setGlobalPrefix('api');
   
+
   const port = process.env.PORT ?? 3001;
-  await app.listen(port);
-  
+  const server = await app.listen(port);
+
+  // Attach socket.io to the same HTTP server
+  const io = new IOServer(server.getHttpServer ? server.getHttpServer() : server, {
+    cors: {
+      origin: [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:3002',
+        'http://127.0.0.1:3002',
+        'https://selecao-q-design-dfzr8jh2o-sewey69s-projects.vercel.app',
+        'https://qdesign.moetezfradi.me',
+      ],
+      credentials: true,
+    },
+  });
+  setSocketServer(io);
+
   console.log(`Server running on http://localhost:${port}`);
 }
 bootstrap();
