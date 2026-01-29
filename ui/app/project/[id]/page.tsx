@@ -58,6 +58,47 @@ import type {
 } from "@/lib/types";
 import { DataPool } from "@/components/workspace/DataPool";
 import { KnowledgeGraphView } from "@/components/workspace/KnowledgeGraph";
+// Transform backend knowledgeGraph to frontend format
+function transformKnowledgeGraph(rawGraph: any): KnowledgeGraph {
+  if (!rawGraph) return { nodes: [], edges: [], groups: [] };
+
+  // Map node types from backend to frontend
+  const typeMap: Record<string, string> = {
+    rcsb: "pdb",
+    uniprot: "sequence",
+  };
+
+  const nodes = (rawGraph.nodes || []).map((node: any) => ({
+    id: String(node.id),
+    type: typeMap[node.type] || node.type || "text",
+    label: String(node.label ?? node.id),
+    description: node.description || "",
+    content: node.content || "",
+    fileUrl: node.fileUrl || undefined,
+    position: node.position || { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
+    trustLevel: node.trustLevel || "medium",
+    notes: node.notes || [],
+    metadata: node.metadata || {},
+    groupId: node.groupId || undefined,
+  }));
+
+  const edges = (rawGraph.edges || []).map((edge: any, idx: number) => ({
+    id: String(edge.id || `${edge.from_id}-${edge.to_id}-${idx}`),
+    source: String(edge.from_id || edge.source),
+    target: String(edge.to_id || edge.target),
+    label: edge.label || undefined,
+    correlationType: edge.type || edge.correlationType || "similar",
+    strength: typeof edge.score === "number" ? edge.score : (edge.strength || 0.5),
+    explanation: edge.explanation || undefined,
+    metadata: edge.metadata || edge.provenance || {},
+  }));
+
+  return {
+    nodes,
+    edges,
+    groups: rawGraph.groups || [],
+  };
+}
 import { CoScientistSidebar } from "@/components/workspace/CoScientistSidebar";
 import {
   FloatingWindow,
@@ -801,7 +842,7 @@ export default function ProjectWorkspace({
           {/* Knowledge Graph Mode */}
           {mode === "retrieval" && (
             <KnowledgeGraphView
-              graph={project.knowledgeGraph || { nodes: [], edges: [], groups: [] }}
+              graph={transformKnowledgeGraph(project.knowledgeGraph)}
               onNodeAdd={handleAddNode}
               onNodeUpdate={handleUpdateNode}
               onNodeRemove={(nodeId) => handleDeleteNode(nodeId)}

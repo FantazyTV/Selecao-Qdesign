@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useContext, createContext } from "react";
+import { projectsApi } from "@/lib/api";
 import {
   ReactFlow,
   Node,
@@ -101,10 +102,22 @@ const NODE_ICONS: Record<string, React.ReactNode> = {
   annotation: <MessageSquare className="h-4 w-4" />,
 };
 
+// Context for expand logic
+const ExpandPromptContext = createContext<{
+  expandedNodeId: string | null;
+  setExpandedNodeId: (id: string | null) => void;
+}>({ expandedNodeId: null, setExpandedNodeId: () => {} });
+
 // Custom Node Component
-function CustomNode({ data, selected }: { data: GraphNode & { onView: () => void; onSelect: () => void }; selected: boolean }) {
+function CustomNode({ data, selected }: {
+  data: GraphNode & { onView: () => void; onSelect: () => void };
+  selected: boolean;
+}) {
+  const { expandedNodeId, setExpandedNodeId } = useContext(ExpandPromptContext);
   const colors = NODE_COLORS[data.type] || NODE_COLORS.text;
   const trustColor = TRUST_COLORS[data.trustLevel];
+  const [expandPrompt, setExpandPrompt] = useState("");
+  const isExpanded = expandedNodeId === data.id;
 
   return (
     <div
@@ -128,11 +141,25 @@ function CustomNode({ data, selected }: { data: GraphNode & { onView: () => void
         title={`Trust: ${data.trustLevel}`}
       />
 
+      {/* Expand circle */}
+      <div
+        className="absolute -left-4 top-1 flex items-center justify-center"
+        style={{ width: 24, height: 24 }}
+      >
+        <div
+          className="flex items-center justify-center rounded-full bg-green-600 border-2 border-white shadow cursor-pointer"
+          style={{ width: 20, height: 20 }}
+          onClick={e => { e.stopPropagation(); setExpandedNodeId(isExpanded ? null : data.id); }}
+        >
+          <Plus className="h-4 w-4 text-white" />
+        </div>
+      </div>
+
       {/* Content */}
       <div className="flex items-start gap-2">
         <span style={{ color: colors.border }}>{NODE_ICONS[data.type]}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-100 truncate">{data.label}</p>
+          <p className="text-sm font-medium truncate" style={{ color: '#1e293b' }}>{data.label}</p>
           {data.description && (
             <p className="text-xs text-gray-400 line-clamp-2 mt-1">
               {data.description}
@@ -149,6 +176,24 @@ function CustomNode({ data, selected }: { data: GraphNode & { onView: () => void
         </div>
       )}
 
+      {/* Expand prompt */}
+      {isExpanded && (
+        <div className="absolute left-1/2 top-full z-10 -translate-x-1/2 mt-2 w-48 rounded-lg bg-white shadow-lg p-2 flex flex-col gap-2">
+          <input
+            className="border rounded px-2 py-1 text-sm"
+            placeholder="Expand prompt..."
+            value={expandPrompt}
+            onChange={e => setExpandPrompt(e.target.value)}
+          />
+          <button
+            className="bg-green-600 text-white rounded px-2 py-1 text-sm"
+            onClick={() => { setExpandedNodeId(null); setExpandPrompt(""); /* TODO: call backend */ }}
+          >
+            Expand
+          </button>
+        </div>
+      )}
+
       {/* Handles */}
       <Handle type="target" position={Position.Top} className="!bg-green-500" />
       <Handle type="source" position={Position.Bottom} className="!bg-green-500" />
@@ -160,8 +205,9 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode,
 };
 
+
 export function KnowledgeGraphView({
-  graph,
+  graph: initialGraph,
   onNodeAdd,
   onNodeUpdate,
   onNodeRemove,
@@ -170,12 +216,15 @@ export function KnowledgeGraphView({
   onNodeView,
   isReadOnly = false,
 }: KnowledgeGraphViewProps) {
+  const [graph, setGraph] = useState<KnowledgeGraph>(initialGraph);
+  const [loading, setLoading] = useState(false);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<GraphEdge | null>(null);
   const [isAddNodeOpen, setIsAddNodeOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
   const [newNote, setNewNote] = useState("");
+  const [expandedNodeId, setExpandedNodeId] = useState<string | null>(null);
 
   const [newNode, setNewNode] = useState({
     type: "text" as GraphNode["type"],
@@ -183,6 +232,40 @@ export function KnowledgeGraphView({
     description: "",
     content: "",
   });
+
+  // Fetch knowledge graph on mount
+  React.useEffect(() => {
+    async function fetchGraph() {
+      setLoading(true);
+      try {
+        const projectId = getProjectIdFromUrl();
+        const res = await projectsApi.get(projectId);
+        // Support both { knowledgeGraph: { nodes, edges, groups } } and { knowledgeGraph: { knowledgeGraph: { nodes, edges, groups }, ... } }
+        let graphData = null;
+        console.log(res.project.knowledgeGraph);
+        if (res && res.project) {
+          if (res.project.knowledgeGraph && Array.isArray(res.project.knowledgeGraph.nodes)) {
+            graphData = res.project.knowledgeGraph;
+          } else if (
+            res.project.knowledgeGraph &&
+            res.project.knowledgeGraph.knowledgeGraph &&
+            Array.isArray(res.project.knowledgeGraph.knowledgeGraph.nodes)
+          ) {
+            graphData = res.project.knowledgeGraph.knowledgeGraph;
+          }
+        }
+        if (graphData) {
+          setGraph(graphData);
+        } else {
+          setGraph({ nodes: [], edges: [], groups: [] });
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchGraph();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Convert graph nodes to ReactFlow nodes
   const initialNodes: Node[] = useMemo(
@@ -203,27 +286,37 @@ export function KnowledgeGraphView({
   // Convert graph edges to ReactFlow edges
   const initialEdges = useMemo(
     () =>
-      graph.edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        label: edge.label,
-        animated: edge.correlationType === "supports",
-        style: {
-          stroke:
-            edge.correlationType === "contradicts"
-              ? "#ef4444"
-              : edge.correlationType === "supports"
-              ? "#22c55e"
-              : "#64748b",
-          strokeWidth: edge.strength * 3,
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-        },
-        data: edge as unknown as Record<string, unknown>,
-      })),
-    [graph.edges]
+      graph.edges.map((edge) => {
+        // Find node names for label
+        const sourceNode = graph.nodes.find(n => n.id === edge.source);
+        const targetNode = graph.nodes.find(n => n.id === edge.target);
+        const label = `${sourceNode?.label || edge.source} → ${targetNode?.label || edge.target}`;
+        return {
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          label,
+          animated: edge.correlationType === "supports",
+          style: {
+            stroke:
+              edge.correlationType === "contradicts"
+                ? "#ef4444"
+                : edge.correlationType === "supports"
+                ? "#22c55e"
+                : "#64748b",
+            strokeWidth: edge.strength * 3,
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+          },
+          data: {
+            ...edge,
+            sourceLabel: sourceNode?.label,
+            targetLabel: targetNode?.label,
+          },
+        };
+      }),
+    [graph.edges, graph.nodes]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -285,60 +378,117 @@ export function KnowledgeGraphView({
     setDeleteReason("");
   };
 
-  const handleAddNote = () => {
-    if (!selectedNode || !newNote.trim()) return;
 
-    const updatedNode: GraphNode = {
-      ...selectedNode,
-      notes: [
-        ...selectedNode.notes,
-        {
-          id: uuidv4(),
-          text: newNote,
-          author: "current-user",
-          createdAt: new Date().toISOString(),
-        },
-      ],
-    };
+  // Utility to get projectId from URL
+  function getProjectIdFromUrl() {
+    if (typeof window !== 'undefined') {
+      const parts = window.location.pathname.split("/");
+      // Find the index of 'project' and return the next segment as the ID
+      const idx = parts.findIndex((p) => p === 'project');
+      if (idx !== -1 && parts.length > idx + 1) {
+        return parts[idx + 1];
+      }
+    }
+    return "";
+  }
 
-    onNodeUpdate(updatedNode);
-    setSelectedNode(updatedNode);
-    setNewNote("");
-  };
+
+  const [pendingTrust, setPendingTrust] = useState<GraphNode["trustLevel"] | null>(null);
+  const [trustSaving, setTrustSaving] = useState(false);
+  const [noteSaving, setNoteSaving] = useState(false);
 
   const handleTrustChange = (trust: GraphNode["trustLevel"]) => {
-    if (!selectedNode) return;
-    const updatedNode = { ...selectedNode, trustLevel: trust };
-    onNodeUpdate(updatedNode);
-    setSelectedNode(updatedNode);
+    setPendingTrust(trust);
+  };
+
+  const handleSaveTrust = async () => {
+    if (!selectedNode || !pendingTrust) return;
+    setTrustSaving(true);
+    try {
+      const projectId = getProjectIdFromUrl();
+      // Only send the trustLevel field
+      await projectsApi.updateNode(
+        projectId,
+        selectedNode.id,
+        { trustLevel: pendingTrust }
+      );
+      const updatedNode = { ...selectedNode, trustLevel: pendingTrust };
+      onNodeUpdate(updatedNode);
+      setSelectedNode(updatedNode);
+      setPendingTrust(null);
+    } finally {
+      setTrustSaving(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!selectedNode || !newNote.trim()) return;
+    setNoteSaving(true);
+    // Only update the notes field
+    const newNotes = [
+      ...selectedNode.notes,
+      {
+        id: uuidv4(),
+        text: newNote,
+        author: "current-user",
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    try {
+      const projectId = getProjectIdFromUrl();
+      await projectsApi.updateNode(
+        projectId,
+        selectedNode.id,
+        { notes: newNotes }
+      );
+      const updatedNode = { ...selectedNode, notes: newNotes };
+      onNodeUpdate(updatedNode);
+      setSelectedNode(updatedNode);
+      setNewNote("");
+    } finally {
+      setNoteSaving(false);
+    }
   };
 
   return (
     <div className="flex h-full">
       {/* Graph Canvas */}
       <div className="flex-1 bg-gray-900">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-          className="bg-gray-900"
-          onNodeClick={(_, node) => {
-            const graphNode = graph.nodes.find((n) => n.id === node.id);
-            if (graphNode) setSelectedNode(graphNode);
-          }}
-          onEdgeClick={(_, edge) => {
-            const graphEdge = graph.edges.find((e) => e.id === edge.id);
-            if (graphEdge) setSelectedEdge(graphEdge);
-          }}
-          onPaneClick={() => {
-            setSelectedNode(null);
-            setSelectedEdge(null);
-          }}
-        >
+        <ExpandPromptContext.Provider value={{ expandedNodeId, setExpandedNodeId }}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            fitView
+            className="bg-gray-900"
+            onNodeClick={(_, node) => {
+              const graphNode = graph.nodes.find((n) => n.id === node.id);
+              if (graphNode) setSelectedNode(graphNode);
+              setExpandedNodeId(null);
+            }}
+            onEdgeClick={(_, edge) => {
+              // Use edge.data to get full edge info and node labels
+              if (edge.data) {
+                setSelectedEdge({
+                  ...edge.data,
+                  // fallback for label if not present
+                  label: edge.label,
+                } as GraphEdge);
+              } else {
+                const graphEdge = graph.edges.find((e) => e.id === edge.id);
+                if (graphEdge) setSelectedEdge(graphEdge);
+              }
+              setExpandedNodeId(null);
+            }}
+            onPaneClick={() => {
+              setSelectedNode(null);
+              setSelectedEdge(null);
+              setExpandedNodeId(null);
+            }}
+          >
           <Controls />
           <MiniMap
             nodeColor={(node) => {
@@ -352,9 +502,9 @@ export function KnowledgeGraphView({
           {/* Top Panel */}
           <Panel position="top-left" className="flex gap-2">
             {!isReadOnly && (
-              <Button size="sm" onClick={() => setIsAddNodeOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Node
+              <Button size="sm" onClick={() => {/* TODO: call retrieve endpoint */}}>
+                <Box className="mr-2 h-4 w-4" />
+                Retrieve
               </Button>
             )}
           </Panel>
@@ -375,6 +525,7 @@ export function KnowledgeGraphView({
             </div>
           </Panel>
         </ReactFlow>
+        </ExpandPromptContext.Provider>
       </div>
 
       {/* Side Panel */}
@@ -438,40 +589,45 @@ export function KnowledgeGraphView({
                 {!isReadOnly && (
                   <div className="space-y-2">
                     <Label className="text-xs text-gray-300">Trust Level</Label>
-                    <Select
-                      value={selectedNode.trustLevel}
-                      onValueChange={(v) => handleTrustChange(v as GraphNode["trustLevel"])}
-                    >
-                      <SelectTrigger className="h-8 bg-gray-800 border-gray-700 text-gray-100">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-700">
-                        <SelectItem value="high">
-                          <span className="flex items-center gap-2">
-                            <Check className="h-3 w-3 text-green-500" />
-                            High Trust
-                          </span>
-                        </SelectItem>
-                        <SelectItem value="medium">
-                          <span className="flex items-center gap-2">
-                            <AlertTriangle className="h-3 w-3 text-amber-500" />
-                            Medium Trust
-                          </span>
-                        </SelectItem>
-                        <SelectItem value="low">
-                          <span className="flex items-center gap-2">
-                            <AlertTriangle className="h-3 w-3 text-red-500" />
-                            Low Trust
-                          </span>
-                        </SelectItem>
-                        <SelectItem value="untrusted">
-                          <span className="flex items-center gap-2">
-                            <X className="h-3 w-3 text-gray-500" />
-                            Untrusted
-                          </span>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2 items-center">
+                      <Select
+                        value={pendingTrust ?? selectedNode.trustLevel}
+                        onValueChange={(v) => handleTrustChange(v as GraphNode["trustLevel"])}
+                      >
+                        <SelectTrigger className="h-8 bg-gray-800 border-gray-700 text-gray-100">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                          <SelectItem value="high">
+                            <span className="flex items-center gap-2">
+                              <Check className="h-3 w-3 text-green-500" />
+                              High Trust
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="medium">
+                            <span className="flex items-center gap-2">
+                              <AlertTriangle className="h-3 w-3 text-amber-500" />
+                              Medium Trust
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="low">
+                            <span className="flex items-center gap-2">
+                              <AlertTriangle className="h-3 w-3 text-red-500" />
+                              Low Trust
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="untrusted">
+                            <span className="flex items-center gap-2">
+                              <X className="h-3 w-3 text-gray-500" />
+                              Untrusted
+                            </span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" onClick={handleSaveTrust} disabled={trustSaving || !pendingTrust || pendingTrust === selectedNode.trustLevel}>
+                        {trustSaving ? "Saving..." : "Save Trust"}
+                      </Button>
+                    </div>
                   </div>
                 )}
 
@@ -495,8 +651,8 @@ export function KnowledgeGraphView({
                           onChange={(e) => setNewNote(e.target.value)}
                           className="h-8 text-xs"
                         />
-                        <Button size="sm" className="h-8" onClick={handleAddNote}>
-                          Add
+                        <Button size="sm" className="h-8" onClick={handleAddNote} disabled={noteSaving}>
+                          {noteSaving ? "Saving..." : "Add"}
                         </Button>
                       </div>
                     )}
@@ -532,27 +688,40 @@ export function KnowledgeGraphView({
                     {selectedEdge.correlationType}
                   </Badge>
 
+                  {/* Provenance (source and target node names) */}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-300">Provenance: </Label>
+                    <span className="text-sm text-green-400">
+                      {graph.nodes.find(n => n.id === selectedEdge.source)?.label || selectedEdge.source}
+                      {" "} | {" "}
+                      {graph.nodes.find(n => n.id === selectedEdge.target)?.label || selectedEdge.target}
+                    </span>
+                  </div>
+
+                  {/* Similarity score */}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-300">Similarity Score: </Label>
+                    <span className="text-sm text-green-400">
+                      {(selectedEdge.strength * 100).toFixed(1)}%
+                    </span>
+                  </div>
+
+                  {/* Biological Features */}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-300">Biological Features: </Label>
+                    <span className="text-sm text-gray-400">
+                      {selectedEdge.metadata && Array.isArray(selectedEdge.metadata.biological_features)
+                        ? selectedEdge.metadata.biological_features.join(" and ")
+                        : "-"}
+                    </span>
+                  </div>
+
                   {selectedEdge.explanation && (
                     <div className="space-y-1">
                       <Label className="text-xs text-gray-300">Explanation</Label>
                       <p className="text-sm text-gray-400">{selectedEdge.explanation}</p>
                     </div>
                   )}
-
-                  <div className="space-y-1">
-                    <Label className="text-xs text-gray-300">Strength</Label>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-green-500 rounded-full"
-                          style={{ width: `${selectedEdge.strength * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-400">
-                        {Math.round(selectedEdge.strength * 100)}%
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}

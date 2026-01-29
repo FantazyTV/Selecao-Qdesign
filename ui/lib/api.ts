@@ -155,6 +155,18 @@ export const projectsApi = {
     request<{ project: any }>(`/projects/${projectId}/data-pool/${itemId}/comments/${commentId}`, { 
       method: 'DELETE' 
     }),
+
+  /**
+   * Update a node in the knowledge graph
+   * @param projectId Project ID
+   * @param nodeId Node ID
+   * @param update Partial node update (trustLevel, notes, etc)
+   */
+  updateNode: (projectId: string, nodeId: string, update: Partial<any>) =>
+    request<{ project: any }>(`/projects/${projectId}/knowledge-graph/nodes/${nodeId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(update),
+    }),
 };
 
 // Combined API object
