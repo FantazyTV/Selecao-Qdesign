@@ -228,7 +228,7 @@ function StepCard({
   );
 }
 
-export function CoScientistSidebar({
+export function CoScientistPanel({
   steps,
   dataPool,
   knowledgeGraph,
@@ -238,164 +238,77 @@ export function CoScientistSidebar({
   onViewAttachment,
   onExport,
   onStart,
-  onPause,
-  onRestart,
-  onSendFeedback,
   isRunning,
-  isOpen,
-  onClose,
-}: CoScientistSidebarProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [feedbackText, setFeedbackText] = useState("");
-
-  // Auto-scroll to bottom when new steps are added
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [steps.length]);
-
-  const handleSendFeedback = () => {
-    if (!feedbackText.trim() || !onSendFeedback) return;
-    onSendFeedback(feedbackText.trim());
-    setFeedbackText("");
-  };
-
-  if (!isOpen) return null;
-
-  const handleApprove = (step: CoScientistStep) => {
-    onUpdateStep({ ...step, status: "approved" });
-  };
-
-  const handleReject = (step: CoScientistStep) => {
-    onUpdateStep({ ...step, status: "rejected" });
-  };
-
+}: Omit<CoScientistSidebarProps, "onPause" | "onRestart" | "onSendFeedback" | "isOpen" | "onClose">) {
+  // No sidebar, just a centered panel
   return (
-    <div className="fixed right-0 top-0 z-40 flex h-full w-96 flex-col border-l border-gray-800 bg-gray-900 shadow-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600">
-            <Brain className="h-4 w-4 text-gray-900" />
-          </div>
-          <div>
-            <h2 className="font-semibold text-green-100">AI Co-Scientist</h2>
-            <p className="text-xs text-gray-400">
-              {isRunning ? "Analyzing..." : `${steps.length} steps completed`}
-            </p>
-          </div>
-        </div>
-        <Button size="icon" variant="ghost" onClick={onClose} className="text-gray-400 hover:bg-gray-800">
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-2">
-        {isRunning ? (
-          <Button size="sm" variant="outline" onClick={onPause} className="border-gray-700 text-gray-300 hover:bg-gray-800">
-            <Pause className="mr-2 h-3 w-3" />
-            Pause
-          </Button>
-        ) : (
-          <Button size="sm" onClick={onStart}>
-            <Play className="mr-2 h-3 w-3" />
-            {steps.length === 0 ? "Start Analysis" : "Continue"}
-          </Button>
-        )}
-        <Button size="sm" variant="outline" onClick={onRestart} className="border-gray-700 text-gray-300 hover:bg-gray-800">
-          <RotateCw className="mr-2 h-3 w-3" />
-          Restart
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="ml-auto border-gray-700 text-gray-300 hover:bg-gray-800"
-          onClick={onExport}
-          disabled={steps.length === 0}
-        >
-          <Download className="mr-2 h-3 w-3" />
-          Export
-        </Button>
-      </div>
-
-      {/* Context Summary */}
-      <div className="border-b border-gray-800 bg-gray-800 px-4 py-2">
-        <p className="text-xs text-gray-400">
-          Analyzing {dataPool.length} data items and {knowledgeGraph.nodes.length} knowledge nodes
+    <div className="flex flex-col items-center justify-center w-full h-full py-12">
+      <div className="flex flex-col items-center max-w-2xl w-full bg-gray-900 rounded-xl shadow-lg p-8 border border-gray-800">
+        <Brain className="h-12 w-12 text-green-400 mb-2" />
+        <h2 className="text-2xl font-bold text-green-100 mb-1">AI Co-Scientist</h2>
+        <p className="text-gray-400 mb-6 text-center">
+          Let the AI analyze your data pool and knowledge graph to generate insights and design suggestions.
         </p>
-      </div>
-
-      {/* Steps */}
-      <ScrollArea className="flex-1" ref={scrollRef}>
-        <div className="space-y-3 p-4">
+        <div className="flex gap-4 mb-6">
+          <Button
+            size="lg"
+            className="px-6"
+            onClick={onStart}
+            disabled={isRunning}
+          >
+            <Play className="mr-2 h-5 w-5" />
+            {steps.length === 0 ? "Start Analysis" : "Continue Analysis"}
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="px-6 border-gray-700 text-gray-300 hover:bg-gray-800"
+            onClick={onExport}
+            disabled={steps.length === 0}
+          >
+            <Download className="mr-2 h-5 w-5" />
+            Export
+          </Button>
+        </div>
+        <div className="w-full">
           {steps.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
               <Brain className="h-12 w-12 text-gray-700" />
               <p className="mt-4 text-sm text-gray-400">
                 No analysis steps yet
               </p>
               <p className="text-xs text-gray-500">
-                Click &quot;Start Analysis&quot; to begin
+                Click "Start Analysis" to begin
               </p>
             </div>
           ) : (
-            steps.map((step) => (
-              <StepCard
-                key={step.id}
-                step={step}
-                onAddComment={(comment) => onAddComment(step.id, comment)}
-                onViewAttachment={onViewAttachment}
-                onApprove={() => handleApprove(step)}
-                onReject={() => handleReject(step)}
-              />
-            ))
-          )}
-
-          {/* Loading indicator */}
-          {isRunning && (
-            <div className="flex items-center gap-3 rounded-lg border border-gray-700 bg-gray-800 p-4">
-              <Loader2 className="h-5 w-5 animate-spin text-green-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-200">Analyzing...</p>
-                <p className="text-xs text-gray-400">
-                  Processing data and generating insights
-                </p>
+            <ScrollArea className="max-h-[400px] w-full">
+              <div className="space-y-3">
+                {steps.map((step) => (
+                  <StepCard
+                    key={step.id}
+                    step={step}
+                    onAddComment={(comment) => onAddComment(step.id, comment)}
+                    onViewAttachment={onViewAttachment}
+                    onApprove={() => onUpdateStep({ ...step, status: "approved" })}
+                    onReject={() => onUpdateStep({ ...step, status: "rejected" })}
+                  />
+                ))}
+                {isRunning && (
+                  <div className="flex items-center gap-3 rounded-lg border border-gray-700 bg-gray-800 p-4">
+                    <Loader2 className="h-5 w-5 animate-spin text-green-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-200">Analyzing...</p>
+                      <p className="text-xs text-gray-400">
+                        Processing data and generating insights
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            </ScrollArea>
           )}
         </div>
-      </ScrollArea>
-
-      {/* Input Area - for adding feedback */}
-      <div className="border-t border-gray-800 p-4">
-        <p className="mb-2 text-xs text-gray-400">
-          Add feedback or constraints for the AI
-        </p>
-        <div className="flex gap-2">
-          <Textarea
-            placeholder="e.g., 'Focus on thermal stability' or 'This contradicts our lab results...'"
-            className="min-h-[60px] text-sm"
-            value={feedbackText}
-            onChange={(e) => setFeedbackText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && e.ctrlKey) {
-                e.preventDefault();
-                handleSendFeedback();
-              }
-            }}
-          />
-        </div>
-        <Button 
-          className="mt-2 w-full" 
-          size="sm"
-          onClick={handleSendFeedback}
-          disabled={!feedbackText.trim() || isRunning}
-        >
-          <Send className="mr-2 h-3 w-3" />
-          Send Feedback
-        </Button>
       </div>
     </div>
   );

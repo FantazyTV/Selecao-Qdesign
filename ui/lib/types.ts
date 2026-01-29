@@ -40,6 +40,7 @@ export interface GraphNode {
   description?: string;
   content?: string;
   fileUrl?: string;
+  largeFileId?: string; // Optional, for backend compatibility
   position: { x: number; y: number };
   trustLevel: "high" | "medium" | "low" | "untrusted";
   notes: Array<{

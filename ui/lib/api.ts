@@ -1,3 +1,5 @@
+
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 const SEARCH_API_URL = process.env.NEXT_PUBLIC_SEARCH_API_URL || 'http://localhost:8000';
 
@@ -171,6 +173,38 @@ export const projectsApi = {
       method: 'PATCH',
       body: JSON.stringify(update),
     }),
+
+
+
+
+  // Data Pool Retrieve endpoint (for logging/filtering only)
+  retrieve: async (id: string, payload: any) => {
+    const res = await fetch(`/api/projects/${id}/retrieve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to send project data');
+    return res.json();
+  },
+
+  /**
+   * Retrieve project data for knowledge graph (calls backend /projects/:id/retrieve)
+   * @param id Project ID
+   * @returns Project data (filtered for retrieval)
+   */
+  retrieveProject: (id: string, project: any) =>
+    request<{ project: any }>(`/projects/${id}/retrieve`, { method: 'POST', body: JSON.stringify(project) }),
+
+  // AI Co-Scientist Analysis endpoint
+  aiAnalysis: async (id: string, payload: any) => 
+    request<{ project: any }>(`/projects/${id}/ai-analysis`, { method: 'POST', body: JSON.stringify(payload) }),
+
+    fetchCifContent: (projectId: string, nodeId: string) =>
+      request<{ content: string }>(`/projects/${projectId}/knowledge-graph/nodes/${nodeId}/fetch-cif-content`, {
+        method: 'POST',
+      }),
+
 };
 
 // Combined API object

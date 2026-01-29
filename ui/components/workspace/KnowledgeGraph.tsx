@@ -159,7 +159,7 @@ function CustomNode({ data, selected }: {
       <div className="flex items-start gap-2">
         <span style={{ color: colors.border }}>{NODE_ICONS[data.type]}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate" style={{ color: '#1e293b' }}>{data.label}</p>
+          <p className="text-sm font-medium truncate" style={{ color: '#1e293b' }}>{data.id}</p>
           {data.description && (
             <p className="text-xs text-gray-400 line-clamp-2 mt-1">
               {data.description}
@@ -267,35 +267,97 @@ export function KnowledgeGraphView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // --- Auto-layout for node positions ---
+  function autoLayoutNodes(nodes: GraphNode[], edges: GraphEdge[]): { [id: string]: { x: number; y: number } } {
+    // Improved force-directed layout for better node separation
+    const W = 2000, H = 1400; // Larger canvas
+    const N = nodes.length;
+    if (N === 0) return {};
+    let positions: { [id: string]: { x: number; y: number } } = {};
+    const spacing = 350; // More space between nodes
+    // Initial grid positions
+    const cols = Math.ceil(Math.sqrt(N));
+    nodes.forEach((node, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      positions[node.id] = {
+        x: 200 + col * spacing,
+        y: 200 + row * spacing,
+      };
+    });
+    // More iterations for layout
+    for (let iter = 0; iter < 200; iter++) {
+      // Repulsion (stronger)
+      for (let i = 0; i < N; i++) {
+        for (let j = i + 1; j < N; j++) {
+          const a = nodes[i], b = nodes[j];
+          const posA = positions[a.id], posB = positions[b.id];
+          let dx = posA.x - posB.x, dy = posA.y - posB.y;
+          let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          if (dist < spacing * 1.1) {
+            // Push apart more strongly
+            const force = (spacing * 1.1 - dist) * 0.25;
+            const fx = (dx / dist) * force, fy = (dy / dist) * force;
+            posA.x += fx; posA.y += fy;
+            posB.x -= fx; posB.y -= fy;
+          }
+        }
+      }
+      // Attraction (edges, stronger)
+      edges.forEach(edge => {
+        const src = positions[edge.source], tgt = positions[edge.target];
+        if (!src || !tgt) return;
+        let dx = tgt.x - src.x, dy = tgt.y - src.y;
+        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        if (dist > spacing) {
+          // Pull together more strongly
+          const force = (dist - spacing) * 0.15;
+          const fx = (dx / dist) * force, fy = (dy / dist) * force;
+          src.x += fx; src.y += fy;
+          tgt.x -= fx; tgt.y -= fy;
+        }
+      });
+    }
+    // Clamp positions to viewport
+    Object.values(positions).forEach(pos => {
+      pos.x = Math.max(60, Math.min(W - 60, pos.x));
+      pos.y = Math.max(60, Math.min(H - 60, pos.y));
+    });
+    return positions;
+  }
+
+  // Always use auto-layout for node positions, ignore DB positions
+  const layoutPositions = useMemo(() => autoLayoutNodes(graph.nodes, graph.edges), [graph.nodes, graph.edges]);
+
   // Convert graph nodes to ReactFlow nodes
   const initialNodes: Node[] = useMemo(
     () =>
       graph.nodes.map((node) => ({
         id: node.id,
         type: "custom",
-        position: node.position,
+        position: layoutPositions[node.id],
         data: {
           ...node,
           onView: () => onNodeView(node),
           onSelect: () => setSelectedNode(node),
         },
       })),
-    [graph.nodes, onNodeView]
+    [graph.nodes, onNodeView, layoutPositions]
   );
 
   // Convert graph edges to ReactFlow edges
   const initialEdges = useMemo(
     () =>
       graph.edges.map((edge) => {
-        // Find node names for label
+        // Find node names for label (but do not render label on edge)
         const sourceNode = graph.nodes.find(n => n.id === edge.source);
         const targetNode = graph.nodes.find(n => n.id === edge.target);
-        const label = `${sourceNode?.label || edge.source} → ${targetNode?.label || edge.target}`;
+        // Remove label from edge to prevent anything being printed on top of the edge
         return {
           id: edge.id,
           source: edge.source,
           target: edge.target,
-          label,
+          // label: (removed)
           animated: edge.correlationType === "supports",
           style: {
             stroke:
@@ -464,7 +526,6 @@ export function KnowledgeGraphView({
                 setSelectedEdge({
                   ...edge.data,
                   // fallback for label if not present
-                  label: edge.label,
                 } as GraphEdge);
               } else {
                 const graphEdge = graph.edges.find((e) => e.id === edge.id);
@@ -491,7 +552,31 @@ export function KnowledgeGraphView({
           {/* Top Panel */}
           <Panel position="top-left" className="flex gap-2">
             {!isReadOnly && (
-              <Button size="sm" onClick={() => {/* TODO: call retrieve endpoint */}}>
+              <Button
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const projectId = getProjectIdFromUrl();
+                    // Fetch the full project (for up-to-date data)
+                    const res = await projectsApi.get(projectId);
+                    const project = res.project;
+                    // Prepare payload: remove knowledgeGraph, coScientistSteps, checkpoints, members, owners, hash
+                    const {
+                      knowledgeGraph,
+                      coScientistSteps,
+                      checkpoints,
+                      members,
+                      owners,
+                      hash,
+                      ...rest
+                    } = project;
+                    await projectsApi.retrieveProject(projectId, rest);
+                    alert('Retrieve request sent!');
+                  } catch (err) {
+                    alert('Failed to send retrieve request.');
+                  }
+                }}
+              >
                 <Box className="mr-2 h-4 w-4" />
                 Retrieve
               </Button>
@@ -541,7 +626,7 @@ export function KnowledgeGraphView({
                     <span style={{ color: NODE_COLORS[selectedNode.type]?.border }}>
                       {NODE_ICONS[selectedNode.type]}
                     </span>
-                    <span className="font-medium text-green-100">{selectedNode.label}</span>
+                    <span className="font-medium text-green-100">{selectedNode.id}</span>
                   </div>
 
                   <Badge variant="secondary" className="bg-gray-800 text-gray-300">{selectedNode.type.toUpperCase()}</Badge>
@@ -557,7 +642,7 @@ export function KnowledgeGraphView({
                     size="sm"
                     variant="outline"
                     className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
-                    onClick={() => onNodeView(selectedNode)}
+                    onClick={() => { console.log('Node contents:', selectedNode); onNodeView(selectedNode); }}
                   >
                     <Eye className="mr-2 h-4 w-4" />
                     View
@@ -699,18 +784,12 @@ export function KnowledgeGraphView({
                   <div className="space-y-1">
                     <Label className="text-xs text-gray-300">Biological Features: </Label>
                     <span className="text-sm text-gray-400">
-                      {selectedEdge.metadata && Array.isArray(selectedEdge.metadata.biological_features)
-                        ? selectedEdge.metadata.biological_features.join(" and ")
+                      {selectedEdge.metadata.provenance
+                        ? selectedEdge.metadata.provenance.biological_features.slice(0, 2).join(" and ")
                         : "-"}
                     </span>
                   </div>
 
-                  {selectedEdge.explanation && (
-                    <div className="space-y-1">
-                      <Label className="text-xs text-gray-300">Explanation</Label>
-                      <p className="text-sm text-gray-400">{selectedEdge.explanation}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             )}

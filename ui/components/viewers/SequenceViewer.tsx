@@ -31,11 +31,19 @@ interface ParsedSequence {
   sequence: string;
 }
 
-function parseFasta(content: string, maxSequences: number = 50): ParsedSequence[] {
+function parseFastaOrPlain(content: string, maxSequences: number = 50): ParsedSequence[] {
+  // If content contains no '>' header, treat as a single plain sequence
+  if (!content.trim().startsWith('>')) {
+    return [{
+      id: 'Sequence',
+      description: '',
+      sequence: content.replace(/\s+/g, ''), // remove whitespace
+    }];
+  }
+  // Otherwise, parse as FASTA
   const sequences: ParsedSequence[] = [];
   const lines = content.split("\n");
   let currentSeq: ParsedSequence | null = null;
-  
   for (const line of lines) {
     const trimmed = line.trim();
     if (trimmed.startsWith(">")) {
@@ -58,11 +66,9 @@ function parseFasta(content: string, maxSequences: number = 50): ParsedSequence[
       }
     }
   }
-  
   if (currentSeq && sequences.length < maxSequences) {
     sequences.push(currentSeq);
   }
-  
   return sequences;
 }
 
@@ -92,7 +98,7 @@ export function SequenceViewer({ content }: SequenceViewerProps) {
     const truncated = content.length > maxContentLength;
     const displayContent = truncated ? content.substring(0, maxContentLength) : content;
     
-    const parsed = parseFasta(displayContent, 50); // Show first 50 sequences
+    const parsed = parseFastaOrPlain(displayContent, 50); // Show first 50 sequences or plain
     if (truncated) {
       parsed.push({ 
         id: "⚠️ File Truncated", 

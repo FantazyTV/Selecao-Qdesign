@@ -99,7 +99,7 @@ function transformKnowledgeGraph(rawGraph: any): KnowledgeGraph {
     groups: rawGraph.groups || [],
   };
 }
-import { CoScientistSidebar } from "@/components/workspace/CoScientistSidebar";
+import { CoScientistPanel } from "@/components/workspace/CoScientistSidebar";
 import {
   FloatingWindow,
   TextViewer,
@@ -848,7 +848,104 @@ export default function ProjectWorkspace({
               onNodeRemove={(nodeId) => handleDeleteNode(nodeId)}
               onEdgeAdd={handleAddEdge}
               onEdgeRemove={handleDeleteEdge}
-              onNodeView={(node) => {
+              onNodeView={async (node) => {
+                // --- Annotation node special handling ---
+                if (node.type === "annotation") {
+                  // Try to infer content type
+                  if (node.content) {
+                    let viewerType: ViewerWindow["type"] = "text";
+                    let isUrl = false;
+                    // Heuristics for content type
+                    if (typeof node.content === "string") {
+                      const content = node.content as string;
+                      if (/^%PDF-/.test(content) || node.label.toLowerCase().endsWith('.pdf')) {
+                        viewerType = "pdf";
+                      } else if (/^[A-Za-z0-9\s\-\*]+$/.test(content) && content.length > 20 && content.length < 10000) {
+                        // Could be sequence or text
+                        if (/^[ACGTURYKMSWBDHVN\s\-\*]+$/i.test(content) && content.length > 30) {
+                          viewerType = "sequence";
+                        } else {
+                          viewerType = "text";
+                        }
+                      } else if (/^data:|^https?:\/\//.test(content) || node.label.match(/\.(jpg|jpeg|png|gif|bmp)$/i)) {
+                        viewerType = "image";
+                        isUrl = /^https?:\/\//.test(content);
+                      }
+                    }
+                    const newViewer: ViewerWindow = {
+                      id: uuidv4(),
+                      type: viewerType,
+                      title: node.label,
+                      data: node.content,
+                      position: { x: 100, y: 100 },
+                      size: { width: 600, height: 400 },
+                      minimized: false,
+                    };
+                    setViewers((prev) => [...prev, newViewer]);
+                    return;
+                  } else if (node.fileUrl) {
+                    // Fallback to CIF viewer if fileUrl exists
+                    let content = node.content;
+                    if (!content && node.fileUrl) {
+                      try {
+                        const res = await projectsApi.fetchCifContent(projectId, node.id);
+                        content = res.content;
+                      } catch (err) {
+                        alert("Failed to load CIF content");
+                        return;
+                      }
+                    }
+                    const newViewer: ViewerWindow = {
+                      id: uuidv4(),
+                      type: "pdb",
+                      title: node.label,
+                      data: content || "",
+                      position: { x: 100, y: 100 },
+                      size: { width: 800, height: 600 },
+                      minimized: false,
+                    };
+                    setViewers((prev) => [...prev, newViewer]);
+                    return;
+                  }
+                }
+                // --- Standard node types ---
+                if (node.type === "sequence") {
+                  const newViewer: ViewerWindow = {
+                    id: uuidv4(),
+                    type: "sequence",
+                    title: node.label,
+                    data: node.content || "",
+                    position: { x: 100, y: 100 },
+                    size: { width: 600, height: 400 },
+                    minimized: false,
+                  };
+                  setViewers((prev) => [...prev, newViewer]);
+                  return;
+                }
+                if (node.type === "pdb") {
+                  let content = node.content;
+                  if (!content && node.fileUrl) {
+                    try {
+                      const res = await projectsApi.fetchCifContent(projectId, node.id);
+                      content = res.content;
+                    } catch (err) {
+                      alert("Failed to load CIF content");
+                      return;
+                    }
+                  }
+                  const newViewer: ViewerWindow = {
+                    id: uuidv4(),
+                    type: "pdb",
+                    title: node.label,
+                    data: content || "",
+                    position: { x: 100, y: 100 },
+                    size: { width: 800, height: 600 },
+                    minimized: false,
+                  };
+                  setViewers((prev) => [...prev, newViewer]);
+                  return;
+                }
+                // Fallback: try to open from data pool
                 const poolItem = (project.dataPool || []).find(
                   (item: DataPoolItem) => item._id === node.id || item.name === node.label
                 );
@@ -857,63 +954,36 @@ export default function ProjectWorkspace({
             />
           )}
 
-          {/* Co-Scientist Mode */}
+          {/* Co-Scientist Mode - Centered Panel */}
           {mode === "coscientist" && (
-            <div className="flex h-full items-center justify-center">
-              <div className="max-w-md text-center">
-                <Brain className="mx-auto h-16 w-16 text-green-400" />
-                <h2 className="mt-4 text-xl font-semibold text-green-100">
-                  AI Co-Scientist
-                </h2>
-                <p className="mt-2 text-gray-400">
-                  Let the AI analyze your data pool and knowledge graph to
-                  generate insights and design suggestions.
-                </p>
-                <Button
-                  className="mt-6"
-                  onClick={() => setShowCoScientist(true)}
-                >
-                  <Brain className="mr-2 h-4 w-4" />
-                  Open Co-Scientist
-                </Button>
-              </div>
-            </div>
+            <CoScientistPanel
+              steps={project.coScientistSteps || []}
+              dataPool={project.dataPool || []}
+              knowledgeGraph={project.knowledgeGraph || { nodes: [], edges: [], groups: [] }}
+              onAddStep={handleAddStep}
+              onUpdateStep={handleUpdateStep}
+              onAddComment={handleAddComment}
+              onViewAttachment={(attachment: { dataPoolItemId?: string; name: string }) => {
+                const poolItem = (project.dataPool || []).find(
+                  (item: DataPoolItem) => item._id === attachment.dataPoolItemId
+                );
+                if (poolItem) openViewer(poolItem);
+              }}
+              onExport={handleExportPDF}
+              onStart={async () => {
+                setIsCoScientistRunning(true);
+                // Prepare filtered project data (exclude hash, owner, members, currentMode, checkpoints, createdAt, updatedAt)
+                const { hash, owner, members, currentMode, checkpoints, createdAt, updatedAt, ...filteredProject } = project;
+                // Send to AI analysis endpoint
+                try {
+                  await projectsApi.aiAnalysis(projectId, filteredProject);
+                } catch (err) {
+                  alert("Failed to send project data to backend");
+                }
+              }}
+              isRunning={isCoScientistRunning || analysisMutation.isPending}
+            />
           )}
-
-          {/* Co-Scientist Sidebar */}
-          <CoScientistSidebar
-            steps={project.coScientistSteps || []}
-            dataPool={project.dataPool || []}
-            knowledgeGraph={project.knowledgeGraph || { nodes: [], edges: [], groups: [] }}
-            onAddStep={handleAddStep}
-            onUpdateStep={handleUpdateStep}
-            onAddComment={handleAddComment}
-            onViewAttachment={(attachment: { dataPoolItemId?: string; name: string }) => {
-              const poolItem = (project.dataPool || []).find(
-                (item: DataPoolItem) => item._id === attachment.dataPoolItemId
-              );
-              if (poolItem) openViewer(poolItem);
-            }}
-            onExport={handleExportPDF}
-            onStart={() => {
-              setIsCoScientistRunning(true);
-              analysisMutation.mutate({ action: "start" });
-            }}
-            onPause={() => setIsCoScientistRunning(false)}
-            onRestart={() => {
-              setIsCoScientistRunning(false);
-              updateMutation.mutate({ coScientistSteps: [] });
-            }}
-            onSendFeedback={(feedback: string) => {
-              analysisMutation.mutate({ feedback, action: "feedback" });
-            }}
-            isRunning={isCoScientistRunning || analysisMutation.isPending}
-            isOpen={showCoScientist || mode === "coscientist"}
-            onClose={() => {
-              setShowCoScientist(false);
-              if (mode === "coscientist") setMode("retrieval");
-            }}
-          />
 
           {/* Floating Viewers */}
           {viewers.map((viewer, index) => {
