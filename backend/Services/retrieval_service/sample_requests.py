@@ -1,64 +1,65 @@
+
 import httpx
-import base64
 import json
-from datetime import datetime
 import time
+from graph.graph_merge_utils import merge_graphs
 
-# Path to the CIF file
-cif_file_path = "tests/data/1E2A.cif"
 
-# Read and base64 encode the CIF file
-with open(cif_file_path, "rb") as f:
-    cif_content = base64.b64encode(f.read()).decode("utf-8")
+def post_protein_graph(payload, label, aggregate):
+    url = "http://localhost:8000/protein-graph"
+    headers = {"Content-Type": "application/json"}
+    timeout = httpx.Timeout(connect=10.0, read=300.0, write=300.0, pool=None)
+    try:
+        start = time.time()
+        with httpx.Client(timeout=timeout) as client:
+            response = client.post(url, json=payload, headers=headers)
+            print(f"\n--- {label} ---")
+            print(f"Status Code: {response.status_code}")
+            if response.status_code == 200:
+                output = response.json()
+                aggregate["nodes"].extend(output.get("nodes", []))
+                aggregate["edges"].extend(output.get("edges", []))
+                print("Response:")
+                print(json.dumps(output, indent=2))
+            else:
+                print("Error Response:")
+                print(response.text)
+    except Exception as e:
+        print(f"Error: {e}")
+    end = time.time()
+    print(f"Request completed in {end - start:.2f} seconds\n")
 
-# Build the request payload
-payload = {
-    "dataPool": [
-        {
-            "id": "cif_entry_1",
-            "type": "cif",
-            "name": "1E2A.cif",
-            "content": cif_content,
-            "addedBy": "test_user",
-            "addedAt": datetime.now().isoformat(),
-            "comments": []
-        }
-    ],
-    "mainObjective": "create a Thermostable Enzyme Variant for cold environments",
-    "secondaryObjectives": [],
-    "Notes": [],
-    "Constraints": []
-}
 
-# Send the POST request
-url = "http://localhost:8000/api/v1/retrieval/analyze"
-headers = {"Content-Type": "application/json"}
 
-timeout = httpx.Timeout(
-    connect=10.0,
-    read=300.0,         # max 5min to read response
-    write=300.0,
-    pool=None
-)
 
-try:
-    start = time.time()
-    with httpx.Client(timeout=timeout) as client:
-        response = client.post(url, json=payload, headers=headers)
-        print(f"Status Code: {response.status_code}")
-        if response.status_code == 200:
-            output = response.json()
-            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-            with open(f"response_{ts}.json", "w") as f:
-                json.dump(output, f, indent=2)
-            print("Response:")
-            print(json.dumps(output, indent=2))
+if __name__ == "__main__":
+    # Collect each graph separately
+    query = "1EZA"
+    query_payload = {"query": query}
+    query_graph = {"nodes": [], "edges": []}
+    post_protein_graph(query_payload, "query", query_graph)
 
-        else:
-            print("Error Response:")
-            print(response.text)
-except Exception as e:
-    print(f"Error: {e}")
+    sequence = "MKTAYIAKQRQISFVKSHFSRQDILDLWIYHTQGYFPDWQNYTPGPGIRYPLKF"
+    sequence_payload = {"sequence": sequence}
+    sequence_graph = {"nodes": [], "edges": []}
+    post_protein_graph(sequence_payload, "sequence", sequence_graph)
 
-end = time.time()
-print(f"Request completed in {end - start:.2f} seconds")
+    cif_file_path = "tests/data/1E2A.cif"
+    with open(cif_file_path, "r", encoding="utf-8", errors="ignore") as f:
+        cif_content = f.read()
+    cif_payload = {"cif": cif_content}
+    cif_graph = {"nodes": [], "edges": []}
+    post_protein_graph(cif_payload, "cif", cif_graph)
+
+    # Merge all three graphs using the utility
+    merged_graph = merge_graphs([query_graph, sequence_graph, cif_graph])
+    with open("response_merged.json", "w") as f:
+        json.dump(merged_graph, f, indent=2)
+    print("Saved merged graph to response_merged.json")
+
+    # Optionally, save the old aggregate for comparison
+    # from graph.graph_merge_utils import finalize_graph_output
+    # aggregate = finalize_graph_output([query_graph, sequence_graph, cif_graph], query, sequence)
+    # with open("response_all.json", "w") as f:
+    #     json.dump(aggregate, f, indent=2)
+    # print("Saved all nodes and edges to response_all.json")

@@ -1,3 +1,4 @@
+import datetime
 import os
 import logging
 import numpy as np
@@ -20,102 +21,126 @@ THREE_TO_ONE = {
 }
 
 def stable_pos(node_id):
-    h = int(hashlib.md5(node_id.encode()).hexdigest(), 16)
-    return {"x": (h % 1000) / 10.0, "y": ((h // 1000) % 1000) / 10.0}
+    h = int(hashlib.md5(str(node_id).encode()).hexdigest(), 16)
+    return {"x": float((h % 1000) / 10.0), "y": float(((h // 1000) % 1000) / 10.0)}
 
 def map_node_type(db_type, node_id):
-    if db_type == "rcsb":
+    if db_type == "rcsb" or db_type == "pdb":
         return "pdb"
-    if db_type == "uniprot":
+    if db_type == "uniprot" or db_type == "sequence" or db_type == "fasta":
         return "sequence"
     if node_id.endswith(".pdf"):
         return "pdf"
     if node_id.endswith((".png", ".jpg", ".jpeg", ".webp")):
         return "image"
+    if node_id.endswith(".txt"):
+        return "text"
     return "annotation"
+
+def _color_for_group(group_id: str) -> str:
+    h = hashlib.md5(group_id.encode()).hexdigest()
+    return f"#{h[:6]}"
+
+def _edge_id(source: str, target: str, score) -> str:
+    s = f"{source}::{target}::{score}"
+    return hashlib.md5(s.encode()).hexdigest()
+
+def _normalize_strength(score):
+    try:
+        val = float(score)
+    except Exception:
+        return 0.0
+    if np.isfinite(val):
+        if val < 0:
+            return 0.0
+        if val > 1:
+            return 1.0
+        return float(val)
+    return 0.0
 
 def normalize_graph(graph_json):
     nodes = []
     edges = []
+    group_map = {}
 
-    for n in graph_json["nodes"]:
-        node_type = map_node_type(n.get("type"), n.get("id"))
-
-        content = None
-        if node_type == "sequence":
-            content = n.get("metadata", {}).get("sequence")
-        elif node_type == "pdb":
-            content = n.get("metadata", {}).get("structure")
+    for n in graph_json.get("nodes", []):
+        print("node raw:", n)
+        node_id = str(n.get("id"))
+        raw_type = n.get("type")
+        node_type = map_node_type(raw_type, node_id)
+        metadata = n.get("metadata") or {}
+        content = n.get("content")
+        file_url = n.get("fileUrl")
+        # If it's a sequence, store sequence in content
+        if node_type == "sequence" and metadata.get("sequence"):
+            content = metadata["sequence"]
+        # If it's PDB, store fileUrl from cif_path
+        if node_type == "pdb" and metadata.get("cif_path"):
+            file_url = metadata["cif_path"]
 
         trust = "high"
-        if n.get("metadata", {}).get("source") == "web":
+        if metadata.get("source") == "web":
             trust = "medium"
 
-        nodes.append({
-            "id": n["id"],
+        label = metadata.get("pdb_id") or metadata.get("uniprot_id") or n.get("label") or node_id
+
+        node_obj = {
+            "id": node_id,
             "type": node_type,
-            "label": n.get("label", n["id"]),
-            "description": n.get("metadata", {}).get("description"),
+            "label": label,
+            "description": metadata.get("description"),
             "content": content,
-            "fileUrl": n.get("metadata", {}).get("file_url"),
-            "position": stable_pos(n["id"]),
+            "fileUrl": file_url,
+            "position": stable_pos(node_id),
             "trustLevel": trust,
-            "notes": [],
-            "metadata": n.get("metadata"),
-            "groupId": n.get("type")
-        })
+            "notes": n.get("notes", []),
+            "metadata": metadata,
+            "groupId": raw_type
+        }
+        nodes.append(node_obj)
 
-    for e in graph_json["edges"]:
-        edges.append({
-            "from": e["from_id"],
-            "to": e["to_id"],
-            "type": e["type"],
-            "score": e.get("score"),
-            "evidence": e.get("evidence", []),
-            "provenance": e.get("provenance", {})
-        })
+        gid = raw_type or "default"
+        if gid not in group_map:
+            friendly = {"rcsb": "PDB structures", "uniprot": "UniProt sequences", "default": "Misc"}.get(gid, gid)
+            group_map[gid] = {"id": gid, "name": friendly, "color": _color_for_group(str(gid))}
 
-    return {
-        "nodes": nodes,
-        "edges": edges
-    }
+    for e in graph_json.get("edges", []):
+        source = str(e.get("from_id") or e.get("from") or "")
+        target = str(e.get("to_id") or e.get("to") or "")
+        raw_type = e.get("type") or e.get("label") or "custom"
+        score = e.get("score")
+        strength = _normalize_strength(score)
+        corr = "custom"
+        if raw_type and "similar" in raw_type.lower():
+            corr = "similar"
+        elif raw_type and raw_type.lower() in {"cites", "contradicts", "supports", "derived"}:
+            corr = raw_type.lower()
+        label = raw_type
+        evidence = e.get("evidence") or []
+        prov = e.get("provenance") or {}
+        explanation = None
+        if evidence:
+            explanation = "; ".join(str(x) for x in evidence) if isinstance(evidence, list) else str(evidence)
+        if not explanation and prov:
+            explanation = "; ".join(f"{k}={v}" for k, v in prov.items())
+        edge_id = _edge_id(source, target, score)
+        edge_obj = {
+            "id": edge_id,
+            "source": source,
+            "target": target,
+            "label": label,
+            "correlationType": corr,
+            "strength": strength,
+            "explanation": explanation,
+            "metadata": {"provenance": prov}
+        }
+        edges.append(edge_obj)
+
+    return {"nodes": nodes, "edges": edges}
+
 def clean_sequence(seq: str) -> str:
     allowed = set("ACDEFGHIKLMNPQRSTVWYUO")
     return "".join(c for c in seq.upper() if c in allowed)
-
-def extract_sequence_from_pdb(pdb_text: str) -> str:
-    seqres = {}
-    lines = pdb_text.splitlines()
-    for line in lines:
-        if line.startswith("SEQRES"):
-            parts = line.split()
-            if len(parts) >= 5:
-                chain = parts[2]
-                residues = parts[4:]
-                seqres.setdefault(chain, []).extend(residues)
-    if seqres:
-        chain = next(iter(seqres))
-        aa = [THREE_TO_ONE.get(r.upper(), "") for r in seqres[chain] if THREE_TO_ONE.get(r.upper(), "")]
-        return clean_sequence("".join(aa))
-
-    residues_by_chain = {}
-    seen = set()
-    for line in lines:
-        if not (line.startswith("ATOM") or line.startswith("HETATM")):
-            continue
-        resname = line[17:20].strip()
-        chain = line[21].strip() if len(line) > 21 else ""
-        resnum = line[22:26].strip() if len(line) > 26 else ""
-        key = (chain, resnum)
-        if key in seen:
-            continue
-        seen.add(key)
-        residues_by_chain.setdefault(chain, []).append(resname)
-    if residues_by_chain:
-        chain = next(iter(residues_by_chain))
-        aa = [THREE_TO_ONE.get(r.upper(), "") for r in residues_by_chain[chain] if THREE_TO_ONE.get(r.upper(), "")]
-        return clean_sequence("".join(aa))
-    return ""
 
 def extract_sequence_from_cif(cif_text: str) -> str:
     lines = cif_text.splitlines()
@@ -160,7 +185,7 @@ def extract_sequence_from_cif(cif_text: str) -> str:
                 i += 1
             return clean_sequence("".join(seq_parts))
         return clean_sequence(rest_stripped.strip('"').strip("'"))
-    return extract_sequence_from_pdb(cif_text)
+    return ""
 
 def safe_embed(sequence: str):
     if not sequence or len(sequence) < 3:
@@ -183,8 +208,8 @@ def build_protein_graph(query: str):
     resolved = resolve_protein_name(query)
     log.info("Resolved: %s", resolved)
 
-    pdb_ids = resolved.get("pdb_ids", [])
-    uniprot_ids = resolved.get("uniprot_ids", [])
+    pdb_ids = resolved.get("pdb_ids", []) or []
+    uniprot_ids = resolved.get("uniprot_ids", []) or []
 
     central_nodes = []
     if pdb_ids:
@@ -193,9 +218,16 @@ def build_protein_graph(query: str):
         central_nodes.append(("uniprot", uniprot_ids[0].upper()))
     if not central_nodes:
         log.error("No valid IDs found.")
-        return None
+        return {"nodes": [], "edges": []}
 
     graph = Graph()
+
+    query_node = Node(
+        id=query + str(datetime.datetime.utcnow().timestamp()),
+        type="annotation",
+        label=query,
+    )
+    graph.add_node(query_node)
 
     for db, id_ in central_nodes:
         log.info("Processing %s ID: %s", db.upper(), id_)
@@ -204,17 +236,20 @@ def build_protein_graph(query: str):
         try:
             if db == "rcsb":
                 vec, payload = get_cif_by_pdb_id(id_)
-                content = payload.get("cif_content") or payload.get("content") if payload else None
+                # log.debug("Qdrant CIF result for %s: vec=%s, payload=%s", id_, vec, payload)
+                content = (payload.get("cif_path")) if payload else None
                 if vec is not None:
                     arr = np.array(vec, dtype=float)
                     if np.isfinite(arr).all():
                         vector = arr.tolist()
                 if vector is None and content:
                     seq = extract_sequence_from_cif(content)
-                    vector = safe_embed(seq)
+                    if seq:
+                        vector = safe_embed(seq)
             else:
                 vec, payload = get_fasta_by_uniprot_id(id_)
-                raw = payload.get("fasta_content") or payload.get("content") if payload else None
+                # log.debug("Qdrant CIF result for %s: vec=%s, payload=%s", id_, vec, payload)
+                raw = (payload.get("fasta_content") or payload.get("content")) if payload else None
                 content = "".join(l.strip() for l in raw.splitlines() if not l.startswith(">")) if raw else None
                 if vec is not None:
                     arr = np.array(vec, dtype=float)
@@ -234,7 +269,8 @@ def build_protein_graph(query: str):
                         with open(path, "r", encoding="utf-8", errors="ignore") as f:
                             content = f.read()
                         seq = extract_sequence_from_cif(content)
-                        vector = safe_embed(seq)
+                        if seq:
+                            vector = safe_embed(seq)
                 else:
                     download_uniprot_fasta(id_)
                     fasta_path = os.path.join("fastas", f"{id_}.fasta")
@@ -246,32 +282,81 @@ def build_protein_graph(query: str):
             except Exception:
                 log.exception("Download/embed failed for %s %s", db, id_)
 
-        central_node = Node(id=id_, type=db, label=id_)
+        central_node = Node(
+            id=id_,
+            type=db,
+            label=id_,
+            metadata={
+                "pdb_id": id_,
+                "cif_path": payload.get("cif_path") if db == "rcsb" else None,
+                "sequence": content if db == "uniprot" else None
+            }
+        )
+        
         graph.add_node(central_node)
+
+        derived_edge = Edge(
+            from_id=query_node.id,
+            to_id=central_node.id,
+            type="derived"
+        )
+        graph.add_edge(derived_edge)
+
         if content is None or vector is None:
             continue
 
         try:
-            results = retrieve_similar_cif(vector, n=5) if db == "rcsb" else retrieve_similar_fasta(vector, n=5)
+            results = retrieve_similar_cif(vector, n=50) if db == "rcsb" else retrieve_similar_fasta(vector, n=5)
         except Exception:
             log.exception("Similarity search failed for %s %s", db, id_)
             results = []
 
         for res in results:
             node_id = res.get("node_id")
-            score = res.get("score")
-            node_metadata = {"biological_features": res.get("biological_features")} if "biological_features" in res else {}
-            node = Node(id=node_id, type=db, label=node_id, metadata=node_metadata)
+            score = res.get("score", res.get("distance", None))
+            node_metadata = {}
+            if "biological_features" in res:
+                node_metadata["biological_features"] = res.get("biological_features")
+            if "payload" in res and isinstance(res["payload"], dict):
+                node_metadata.update(res["payload"])
+
+            node_label = node_metadata.get("pdb_id") or node_metadata.get("uniprot_id") or node_id
+            content_field = node_metadata.get("sequence") if db == "uniprot" else None
+            file_url = node_metadata.get("cif_path") if db == "rcsb" else None
+
+            print(node_id)
+
+            node = Node(
+                id=node_id,
+                type=db,
+                label=node_label,
+                metadata=node_metadata,
+            )
             graph.add_node(node)
+
             edge_metadata = node_metadata.copy()
-            edge = Edge(from_id=central_node.id, to_id=node.id, type="similarity", score=score, evidence=[], provenance=edge_metadata)
+            edge = Edge(
+                from_id=central_node.id,
+                to_id=node.id,
+                type="similarity",
+                score=score,
+                evidence=res.get("evidence", []),
+                provenance=edge_metadata
+            )
             graph.add_edge(edge)
 
     raw = graph.as_json()
     return normalize_graph(raw)
 
+
 if __name__ == "__main__":
     import sys, json
     query = sys.argv[1] if len(sys.argv) > 1 else "1eza"
     graph_json = build_protein_graph(query)
+
+    # Save to file
+    with open("graph_output.json", "w", encoding="utf-8") as f:
+        json.dump(graph_json, f, indent=2)
+
+    # Print to console
     print(json.dumps(graph_json, indent=2))

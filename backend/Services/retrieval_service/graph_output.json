@@ -1,0 +1,1628 @@
+{
+  "nodes": [
+    {
+      "id": "1eza",
+      "type": "annotation",
+      "label": "1eza",
+      "description": null,
+      "content": null,
+      "fileUrl": null,
+      "position": {
+        "x": 21.2,
+        "y": 39.3
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {},
+      "groupId": "annotation"
+    },
+    {
+      "id": "1EZA",
+      "type": "pdb",
+      "label": "1EZA",
+      "description": null,
+      "content": null,
+      "fileUrl": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZA.cif",
+      "position": {
+        "x": 70.9,
+        "y": 18.9
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "pdb_id": "1EZA",
+        "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZA.cif",
+        "sequence": null
+      },
+      "groupId": "rcsb"
+    },
+    {
+      "id": "3EZB_A",
+      "type": "pdb",
+      "label": "3EZB",
+      "description": null,
+      "content": null,
+      "fileUrl": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+      "position": {
+        "x": 1.7,
+        "y": 76.8
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "biological_features": [
+          "Flexibility",
+          "Contacts",
+          "Surface (RSA)",
+          "Secondary Structure"
+        ],
+        "pdb_id": "3EZB",
+        "chain": "A",
+        "type": "protein_structure",
+        "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+        "sequence": null
+      },
+      "groupId": "rcsb"
+    },
+    {
+      "id": "1EZC_A",
+      "type": "pdb",
+      "label": "1EZC",
+      "description": null,
+      "content": null,
+      "fileUrl": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+      "position": {
+        "x": 24.6,
+        "y": 61.9
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "biological_features": [
+          "Flexibility",
+          "Contacts",
+          "Surface (RSA)",
+          "Secondary Structure"
+        ],
+        "pdb_id": "1EZC",
+        "chain": "A",
+        "type": "protein_structure",
+        "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+        "sequence": null
+      },
+      "groupId": "rcsb"
+    },
+    {
+      "id": "2EZA_A",
+      "type": "pdb",
+      "label": "2EZA",
+      "description": null,
+      "content": null,
+      "fileUrl": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\2EZA.cif",
+      "position": {
+        "x": 67.6,
+        "y": 18.9
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "biological_features": [
+          "Flexibility",
+          "Contacts",
+          "Surface (RSA)",
+          "Secondary Structure"
+        ],
+        "pdb_id": "2EZA",
+        "chain": "A",
+        "type": "protein_structure",
+        "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\2EZA.cif",
+        "sequence": null
+      },
+      "groupId": "rcsb"
+    },
+    {
+      "id": "Q9ZSM8",
+      "type": "sequence",
+      "label": "Q9ZSM8",
+      "description": null,
+      "content": "MVTDDSNSSGRIKSHVDDDDDGEEEEDRLEGLENRLSELKRKIQGERVRSIKEKFEANRKKVDAHVSPFSSAASSRATAEDNGNSNMLSSRMRMPLCKLNGFSHGVGDRDYVPTKDVISASVKLPIAERIPPYTTWIFLDRNQRMAEDQSVVGRRQIYYEQHGGETLICSDSEEEPEPEEEKREFSEGEDSIIWLIGQEYGMGEEVQDALCQLLSVDASDILERYNELKLKDKQNTEEFSNSGFKLGISLEKGLGAALDSFDNLFCRRCLVFDCRLHGCSQPLISASEKQPYWSDYEGDRKPCSKHCYLQLKAVREVPETCSNFASKAEEKASEEECSKAVSSDVPHAAASGVSLQVEKTDIGIKNVDSSSGVEQEHGIRGKREVPILKDSNDLPNLSNKKQKTAASDTKMSFVNSVPSLDQALDSTKGDQGGTTDNKVNRDSEADAKEVGEPIPDNSVHDGGSSICQPHHGSGNGAIIIAEMSETSRPSTEWNPIEKDLYLKGVEIFGRNSCLIARNLLSGLKTCLDVSNYMRENEVSVFRRSSTPNLLLDDGRTDPGNDNDEVPPRTRLFRRKGKTRKLKYSTKSAGHPSVWKRIAGGKNQSCKQYTPCGCLSMCGKDCPCLTNETCCEKYCGCSKSCKNRFRGCHCAKSQCRSRQCPCFAAGRECDPDVCRNCWVSCGDGSLGEAPRRGEGQCGNMRLLLRQQQRILLGKSDVAGWGAFLKNSVSKNEYLGEYTGELISHHEADKRGKIYDRANSSFLFDLNDQYVLDAQRKGDKLKFANHSAKPNCYAKVMFVAGDHRVGIFANERIEASEELFYDYRYGPDQAPVWARKPEGSKKDDSAITHRRARKHQSH",
+      "fileUrl": null,
+      "position": {
+        "x": 8.0,
+        "y": 21.6
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "pdb_id": "Q9ZSM8",
+        "cif_path": null,
+        "sequence": "MVTDDSNSSGRIKSHVDDDDDGEEEEDRLEGLENRLSELKRKIQGERVRSIKEKFEANRKKVDAHVSPFSSAASSRATAEDNGNSNMLSSRMRMPLCKLNGFSHGVGDRDYVPTKDVISASVKLPIAERIPPYTTWIFLDRNQRMAEDQSVVGRRQIYYEQHGGETLICSDSEEEPEPEEEKREFSEGEDSIIWLIGQEYGMGEEVQDALCQLLSVDASDILERYNELKLKDKQNTEEFSNSGFKLGISLEKGLGAALDSFDNLFCRRCLVFDCRLHGCSQPLISASEKQPYWSDYEGDRKPCSKHCYLQLKAVREVPETCSNFASKAEEKASEEECSKAVSSDVPHAAASGVSLQVEKTDIGIKNVDSSSGVEQEHGIRGKREVPILKDSNDLPNLSNKKQKTAASDTKMSFVNSVPSLDQALDSTKGDQGGTTDNKVNRDSEADAKEVGEPIPDNSVHDGGSSICQPHHGSGNGAIIIAEMSETSRPSTEWNPIEKDLYLKGVEIFGRNSCLIARNLLSGLKTCLDVSNYMRENEVSVFRRSSTPNLLLDDGRTDPGNDNDEVPPRTRLFRRKGKTRKLKYSTKSAGHPSVWKRIAGGKNQSCKQYTPCGCLSMCGKDCPCLTNETCCEKYCGCSKSCKNRFRGCHCAKSQCRSRQCPCFAAGRECDPDVCRNCWVSCGDGSLGEAPRRGEGQCGNMRLLLRQQQRILLGKSDVAGWGAFLKNSVSKNEYLGEYTGELISHHEADKRGKIYDRANSSFLFDLNDQYVLDAQRKGDKLKFANHSAKPNCYAKVMFVAGDHRVGIFANERIEASEELFYDYRYGPDQAPVWARKPEGSKKDDSAITHRRARKHQSH"
+      },
+      "groupId": "uniprot"
+    },
+    {
+      "id": "sp|Q06649|3BP2_MOUSE",
+      "type": "sequence",
+      "label": "sp|Q06649|3BP2_MOUSE",
+      "description": null,
+      "content": "MAAEEMQWPVPMKAIGAQNLLTMPGGVAKAGYLHKKGGTQLQLLKWPLRFVIIHKRCIYYFKSSTSASPQGAFSLSGYNRVMRAAEETTSNNVFPFKIIHISKKHRTWFFSASSEDERKSWMAFVRREIGHFHEKKELPLDTSDSSSDTDSFYGAVERPIDISLSSYPMDNEDYEHEDEDDSYLEPDSPGPMKLEDALTYPPAYPPPPVPVPRKPAFSDLPRAHSFTSKSPSPLLPPPPPKRGLPDTGSAPEDAKDALGLRRVEPGLRVPATPRRMSDPPMSNVPTVPNLRKHPCFRDSVNPGLEPWTPGHGTSSVSSSTTMAVATSRNCDKLKSFHLSSRGPPTSEPPPVPANKPKFLKIAEEPSPREAAKFAPVPPVAPRPPVQKMPMPEATVRPAVLPRPENTPLPHLQRSPPDGQSFRGFSFEKARQPSQADTGEEDSDEDYEKVPLPNSVFVNTTESCEVERLFKATDPRGEPQDGLYCIRNSSTKSGKVLVVWDESSNKVRNYRIFEKDSKFYLEGEVLFASVGSMVEHYHTHVLPSHQSLLLRHPYGYAGPR",
+      "fileUrl": null,
+      "position": {
+        "x": 14.8,
+        "y": 69.3
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "biological_features": [
+          "Surface (RSA)",
+          "Contacts",
+          "Secondary Structure",
+          "Flexibility",
+          "Hydrophobicity"
+        ],
+        "uniprot_id": "sp|Q06649|3BP2_MOUSE",
+        "type": "uniprot_sequence",
+        "sequence": "MAAEEMQWPVPMKAIGAQNLLTMPGGVAKAGYLHKKGGTQLQLLKWPLRFVIIHKRCIYYFKSSTSASPQGAFSLSGYNRVMRAAEETTSNNVFPFKIIHISKKHRTWFFSASSEDERKSWMAFVRREIGHFHEKKELPLDTSDSSSDTDSFYGAVERPIDISLSSYPMDNEDYEHEDEDDSYLEPDSPGPMKLEDALTYPPAYPPPPVPVPRKPAFSDLPRAHSFTSKSPSPLLPPPPPKRGLPDTGSAPEDAKDALGLRRVEPGLRVPATPRRMSDPPMSNVPTVPNLRKHPCFRDSVNPGLEPWTPGHGTSSVSSSTTMAVATSRNCDKLKSFHLSSRGPPTSEPPPVPANKPKFLKIAEEPSPREAAKFAPVPPVAPRPPVQKMPMPEATVRPAVLPRPENTPLPHLQRSPPDGQSFRGFSFEKARQPSQADTGEEDSDEDYEKVPLPNSVFVNTTESCEVERLFKATDPRGEPQDGLYCIRNSSTKSGKVLVVWDESSNKVRNYRIFEKDSKFYLEGEVLFASVGSMVEHYHTHVLPSHQSLLLRHPYGYAGPR",
+        "cif_path": null
+      },
+      "groupId": "uniprot"
+    },
+    {
+      "id": "sp|Q13541|4EBP1_HUMAN",
+      "type": "sequence",
+      "label": "sp|Q13541|4EBP1_HUMAN",
+      "description": null,
+      "content": "MSGGSSCSQTPSRAIPATRRVVLGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVTKTPPRDLPTIPGVTSPSSDEPPMEASQSHLRNSPEDKRAGGEESQFEMDI",
+      "fileUrl": null,
+      "position": {
+        "x": 62.0,
+        "y": 20.3
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "biological_features": [
+          "Secondary Structure",
+          "Surface (RSA)",
+          "Contacts",
+          "Flexibility",
+          "Hydrophobicity"
+        ],
+        "uniprot_id": "sp|Q13541|4EBP1_HUMAN",
+        "type": "uniprot_sequence",
+        "sequence": "MSGGSSCSQTPSRAIPATRRVVLGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVTKTPPRDLPTIPGVTSPSSDEPPMEASQSHLRNSPEDKRAGGEESQFEMDI",
+        "cif_path": null
+      },
+      "groupId": "uniprot"
+    },
+    {
+      "id": "sp|Q62622|4EBP1_RAT",
+      "type": "sequence",
+      "label": "sp|Q62622|4EBP1_RAT",
+      "description": null,
+      "content": "MSAGSSCSQTPSRAIPTRRVALGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVAKTPPKDLPTIPGVTSPTSDEPPMQASQSHLHSSPEDKRAGGEESQFEMDI",
+      "fileUrl": null,
+      "position": {
+        "x": 98.3,
+        "y": 62.0
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "biological_features": [
+          "Secondary Structure",
+          "Surface (RSA)",
+          "Contacts",
+          "Flexibility",
+          "Hydrophobicity"
+        ],
+        "uniprot_id": "sp|Q62622|4EBP1_RAT",
+        "type": "uniprot_sequence",
+        "sequence": "MSAGSSCSQTPSRAIPTRRVALGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVAKTPPKDLPTIPGVTSPTSDEPPMQASQSHLHSSPEDKRAGGEESQFEMDI",
+        "cif_path": null
+      },
+      "groupId": "uniprot"
+    },
+    {
+      "id": "sp|Q60876|4EBP1_MOUSE",
+      "type": "sequence",
+      "label": "sp|Q60876|4EBP1_MOUSE",
+      "description": null,
+      "content": "MSAGSSCSQTPSRAIPTRRVALGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVAKTPPKDLPAIPGVTSPTSDEPPMQASQSQLPSSPEDKRAGGEESQFEMDI",
+      "fileUrl": null,
+      "position": {
+        "x": 14.5,
+        "y": 3.4
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "biological_features": [
+          "Secondary Structure",
+          "Surface (RSA)",
+          "Contacts",
+          "Flexibility",
+          "Hydrophobicity"
+        ],
+        "uniprot_id": "sp|Q60876|4EBP1_MOUSE",
+        "type": "uniprot_sequence",
+        "sequence": "MSAGSSCSQTPSRAIPTRRVALGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVAKTPPKDLPAIPGVTSPTSDEPPMQASQSQLPSSPEDKRAGGEESQFEMDI",
+        "cif_path": null
+      },
+      "groupId": "uniprot"
+    },
+    {
+      "id": "sp|Q96356|2AP1_BRAOT",
+      "type": "sequence",
+      "label": "sp|Q96356|2AP1_BRAOT",
+      "description": null,
+      "content": "MGRGRVQLKRIENKINRQVTFSKRRAGLMKKAHEISVLCDAEVALVVFSHKGKLFEYSTDSCMEKILERYERYSYAERQLIAPESDSNTNWSMEYNRLKAKIELLERNQRHYLGEDLQAMSPKELQNLEQQLDTALKHIRSRKNQLMYDSINELQRKEKAIQEQNSMLSKQIKERENVLRAQQEQWDEQNHGHNMPPPPPPQQHQIQHPYMLSHQPSPFLNMGGLYQEEDQMAMRRNDLDLSLEPVYNCNLGCFAA",
+      "fileUrl": null,
+      "position": {
+        "x": 62.4,
+        "y": 21.5
+      },
+      "trustLevel": "high",
+      "notes": [],
+      "metadata": {
+        "biological_features": [
+          "Secondary Structure",
+          "Surface (RSA)",
+          "Contacts",
+          "Flexibility"
+        ],
+        "uniprot_id": "sp|Q96356|2AP1_BRAOT",
+        "type": "uniprot_sequence",
+        "sequence": "MGRGRVQLKRIENKINRQVTFSKRRAGLMKKAHEISVLCDAEVALVVFSHKGKLFEYSTDSCMEKILERYERYSYAERQLIAPESDSNTNWSMEYNRLKAKIELLERNQRHYLGEDLQAMSPKELQNLEQQLDTALKHIRSRKNQLMYDSINELQRKEKAIQEQNSMLSKQIKERENVLRAQQEQWDEQNHGHNMPPPPPPQQHQIQHPYMLSHQPSPFLNMGGLYQEEDQMAMRRNDLDLSLEPVYNCNLGCFAA",
+        "cif_path": null
+      },
+      "groupId": "uniprot"
+    }
+  ],
+  "edges": [
+    {
+      "id": "f56ed567b867622089980fd85fb51bba",
+      "source": "1eza",
+      "target": "1EZA",
+      "label": "derived",
+      "correlationType": "derived",
+      "strength": 0.0,
+      "explanation": null,
+      "metadata": {
+        "provenance": {}
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "b9c06998375e11d59d4ed68ef2764d4e",
+      "source": "1EZA",
+      "target": "2EZA_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=2EZA; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\2EZA.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "2EZA",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\2EZA.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "458b84977beb4c87bc4eff4b069468d6",
+      "source": "1EZA",
+      "target": "1EZC_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=1EZC; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "1EZC",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\1EZC.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "900bcb339b17d1097b2ac82aee86dd76",
+      "source": "1EZA",
+      "target": "3EZB_A",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 1.0,
+      "explanation": "biological_features=['Flexibility', 'Contacts', 'Surface (RSA)', 'Secondary Structure']; pdb_id=3EZB; chain=A; type=protein_structure; cif_path=C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif; sequence=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Flexibility",
+            "Contacts",
+            "Surface (RSA)",
+            "Secondary Structure"
+          ],
+          "pdb_id": "3EZB",
+          "chain": "A",
+          "type": "protein_structure",
+          "cif_path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\pdbs\\3EZB.cif",
+          "sequence": null
+        }
+      }
+    },
+    {
+      "id": "9fd32c0cf6f94b8380baf397da11263c",
+      "source": "1eza",
+      "target": "Q9ZSM8",
+      "label": "derived",
+      "correlationType": "derived",
+      "strength": 0.0,
+      "explanation": null,
+      "metadata": {
+        "provenance": {}
+      }
+    },
+    {
+      "id": "dda6e9975093604b30ee62fea1ded4d5",
+      "source": "Q9ZSM8",
+      "target": "sp|Q06649|3BP2_MOUSE",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 0.9382391,
+      "explanation": "biological_features=['Surface (RSA)', 'Contacts', 'Secondary Structure', 'Flexibility', 'Hydrophobicity']; uniprot_id=sp|Q06649|3BP2_MOUSE; type=uniprot_sequence; sequence=MAAEEMQWPVPMKAIGAQNLLTMPGGVAKAGYLHKKGGTQLQLLKWPLRFVIIHKRCIYYFKSSTSASPQGAFSLSGYNRVMRAAEETTSNNVFPFKIIHISKKHRTWFFSASSEDERKSWMAFVRREIGHFHEKKELPLDTSDSSSDTDSFYGAVERPIDISLSSYPMDNEDYEHEDEDDSYLEPDSPGPMKLEDALTYPPAYPPPPVPVPRKPAFSDLPRAHSFTSKSPSPLLPPPPPKRGLPDTGSAPEDAKDALGLRRVEPGLRVPATPRRMSDPPMSNVPTVPNLRKHPCFRDSVNPGLEPWTPGHGTSSVSSSTTMAVATSRNCDKLKSFHLSSRGPPTSEPPPVPANKPKFLKIAEEPSPREAAKFAPVPPVAPRPPVQKMPMPEATVRPAVLPRPENTPLPHLQRSPPDGQSFRGFSFEKARQPSQADTGEEDSDEDYEKVPLPNSVFVNTTESCEVERLFKATDPRGEPQDGLYCIRNSSTKSGKVLVVWDESSNKVRNYRIFEKDSKFYLEGEVLFASVGSMVEHYHTHVLPSHQSLLLRHPYGYAGPR; cif_path=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Surface (RSA)",
+            "Contacts",
+            "Secondary Structure",
+            "Flexibility",
+            "Hydrophobicity"
+          ],
+          "uniprot_id": "sp|Q06649|3BP2_MOUSE",
+          "type": "uniprot_sequence",
+          "sequence": "MAAEEMQWPVPMKAIGAQNLLTMPGGVAKAGYLHKKGGTQLQLLKWPLRFVIIHKRCIYYFKSSTSASPQGAFSLSGYNRVMRAAEETTSNNVFPFKIIHISKKHRTWFFSASSEDERKSWMAFVRREIGHFHEKKELPLDTSDSSSDTDSFYGAVERPIDISLSSYPMDNEDYEHEDEDDSYLEPDSPGPMKLEDALTYPPAYPPPPVPVPRKPAFSDLPRAHSFTSKSPSPLLPPPPPKRGLPDTGSAPEDAKDALGLRRVEPGLRVPATPRRMSDPPMSNVPTVPNLRKHPCFRDSVNPGLEPWTPGHGTSSVSSSTTMAVATSRNCDKLKSFHLSSRGPPTSEPPPVPANKPKFLKIAEEPSPREAAKFAPVPPVAPRPPVQKMPMPEATVRPAVLPRPENTPLPHLQRSPPDGQSFRGFSFEKARQPSQADTGEEDSDEDYEKVPLPNSVFVNTTESCEVERLFKATDPRGEPQDGLYCIRNSSTKSGKVLVVWDESSNKVRNYRIFEKDSKFYLEGEVLFASVGSMVEHYHTHVLPSHQSLLLRHPYGYAGPR",
+          "cif_path": null
+        }
+      }
+    },
+    {
+      "id": "4ecc58c0d0eb045ec97f9b0fdc583958",
+      "source": "Q9ZSM8",
+      "target": "sp|Q13541|4EBP1_HUMAN",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 0.9360316,
+      "explanation": "biological_features=['Secondary Structure', 'Surface (RSA)', 'Contacts', 'Flexibility', 'Hydrophobicity']; uniprot_id=sp|Q13541|4EBP1_HUMAN; type=uniprot_sequence; sequence=MSGGSSCSQTPSRAIPATRRVVLGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVTKTPPRDLPTIPGVTSPSSDEPPMEASQSHLRNSPEDKRAGGEESQFEMDI; cif_path=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Secondary Structure",
+            "Surface (RSA)",
+            "Contacts",
+            "Flexibility",
+            "Hydrophobicity"
+          ],
+          "uniprot_id": "sp|Q13541|4EBP1_HUMAN",
+          "type": "uniprot_sequence",
+          "sequence": "MSGGSSCSQTPSRAIPATRRVVLGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVTKTPPRDLPTIPGVTSPSSDEPPMEASQSHLRNSPEDKRAGGEESQFEMDI",
+          "cif_path": null
+        }
+      }
+    },
+    {
+      "id": "e2ab2d2db3dd8469affa36e2654952c6",
+      "source": "Q9ZSM8",
+      "target": "sp|Q62622|4EBP1_RAT",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 0.93517184,
+      "explanation": "biological_features=['Secondary Structure', 'Surface (RSA)', 'Contacts', 'Flexibility', 'Hydrophobicity']; uniprot_id=sp|Q62622|4EBP1_RAT; type=uniprot_sequence; sequence=MSAGSSCSQTPSRAIPTRRVALGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVAKTPPKDLPTIPGVTSPTSDEPPMQASQSHLHSSPEDKRAGGEESQFEMDI; cif_path=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Secondary Structure",
+            "Surface (RSA)",
+            "Contacts",
+            "Flexibility",
+            "Hydrophobicity"
+          ],
+          "uniprot_id": "sp|Q62622|4EBP1_RAT",
+          "type": "uniprot_sequence",
+          "sequence": "MSAGSSCSQTPSRAIPTRRVALGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVAKTPPKDLPTIPGVTSPTSDEPPMQASQSHLHSSPEDKRAGGEESQFEMDI",
+          "cif_path": null
+        }
+      }
+    },
+    {
+      "id": "ba8f5fdb8951c1a88481c2339ed2c548",
+      "source": "Q9ZSM8",
+      "target": "sp|Q60876|4EBP1_MOUSE",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 0.9342375,
+      "explanation": "biological_features=['Secondary Structure', 'Surface (RSA)', 'Contacts', 'Flexibility', 'Hydrophobicity']; uniprot_id=sp|Q60876|4EBP1_MOUSE; type=uniprot_sequence; sequence=MSAGSSCSQTPSRAIPTRRVALGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVAKTPPKDLPAIPGVTSPTSDEPPMQASQSQLPSSPEDKRAGGEESQFEMDI; cif_path=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Secondary Structure",
+            "Surface (RSA)",
+            "Contacts",
+            "Flexibility",
+            "Hydrophobicity"
+          ],
+          "uniprot_id": "sp|Q60876|4EBP1_MOUSE",
+          "type": "uniprot_sequence",
+          "sequence": "MSAGSSCSQTPSRAIPTRRVALGDGVQLPPGDYSTTPGGTLFSTTPGGTRIIYDRKFLMECRNSPVAKTPPKDLPAIPGVTSPTSDEPPMQASQSQLPSSPEDKRAGGEESQFEMDI",
+          "cif_path": null
+        }
+      }
+    },
+    {
+      "id": "9aa6aa00b8ae8acc5735bd2455543de6",
+      "source": "Q9ZSM8",
+      "target": "sp|Q96356|2AP1_BRAOT",
+      "label": "similarity",
+      "correlationType": "similar",
+      "strength": 0.9334591,
+      "explanation": "biological_features=['Secondary Structure', 'Surface (RSA)', 'Contacts', 'Flexibility']; uniprot_id=sp|Q96356|2AP1_BRAOT; type=uniprot_sequence; sequence=MGRGRVQLKRIENKINRQVTFSKRRAGLMKKAHEISVLCDAEVALVVFSHKGKLFEYSTDSCMEKILERYERYSYAERQLIAPESDSNTNWSMEYNRLKAKIELLERNQRHYLGEDLQAMSPKELQNLEQQLDTALKHIRSRKNQLMYDSINELQRKEKAIQEQNSMLSKQIKERENVLRAQQEQWDEQNHGHNMPPPPPPQQHQIQHPYMLSHQPSPFLNMGGLYQEEDQMAMRRNDLDLSLEPVYNCNLGCFAA; cif_path=None",
+      "metadata": {
+        "provenance": {
+          "biological_features": [
+            "Secondary Structure",
+            "Surface (RSA)",
+            "Contacts",
+            "Flexibility"
+          ],
+          "uniprot_id": "sp|Q96356|2AP1_BRAOT",
+          "type": "uniprot_sequence",
+          "sequence": "MGRGRVQLKRIENKINRQVTFSKRRAGLMKKAHEISVLCDAEVALVVFSHKGKLFEYSTDSCMEKILERYERYSYAERQLIAPESDSNTNWSMEYNRLKAKIELLERNQRHYLGEDLQAMSPKELQNLEQQLDTALKHIRSRKNQLMYDSINELQRKEKAIQEQNSMLSKQIKERENVLRAQQEQWDEQNHGHNMPPPPPPQQHQIQHPYMLSHQPSPFLNMGGLYQEEDQMAMRRNDLDLSLEPVYNCNLGCFAA",
+          "cif_path": null
+        }
+      }
+    }
+  ]
+}

@@ -14,8 +14,10 @@ from datetime import datetime
 import dotenv
 dotenv.load_dotenv()
 
+
 # Import routers
 from api.retrieval_router import router as retrieval_router
+from api.protein_graph_router import router as protein_graph_router
 # from api.extension_router import router as extension_router
 
 # Configure logging
@@ -73,8 +75,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Include routers
 app.include_router(retrieval_router)
+app.include_router(protein_graph_router)
 # app.include_router(extension_router)
 
 # Root endpoint

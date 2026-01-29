@@ -17,6 +17,9 @@ class Node:
             "embedding": self.embedding,
             "metadata": self.metadata,
         }
+    
+    def __str__(self) -> str:
+        return f"Node(id={self.id}, type={self.type}, label={self.label}, metadata={json.dumps(self.metadata)})"
 
 class Edge:
     def __init__(self, from_id: str, to_id: str, type: str, score: Optional[float] = None, evidence: Optional[str] = None, provenance: Optional[Dict[str, Any]] = None):
