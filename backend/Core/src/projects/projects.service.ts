@@ -1,3 +1,21 @@
+import { Connection } from 'mongoose';
+// Helper: get or create a GridFS bucket for large files
+async function getGridFSBucket(mongooseConnection: any) {
+  const { GridFSBucket } = await import('mongodb');
+  return new GridFSBucket(mongooseConnection.db);
+}
+
+// --- Add GraphNode type with largeFileId ---
+type GraphNode = {
+  id: string;
+  label?: string;
+  fileUrl?: string;
+  content?: string;
+  largeFileId?: string;
+  notes?: any[];
+  [key: string]: any;
+};
+
 import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -19,6 +37,25 @@ type CheckpointPayload = {
 
 @Injectable()
 export class ProjectsService {
+  // --- Helper: fetch large CIF from GridFS by fileId ---
+  private async fetchLargeCifFromDb(fileId: string): Promise<string | null> {
+    const mongoose = await import('mongoose');
+    const conn = mongoose.connection;
+    if (conn.readyState !== 1) {
+      await new Promise((resolve, reject) => {
+        conn.once('open', resolve);
+        conn.once('error', reject);
+      });
+    }
+    const bucket = await getGridFSBucket(conn);
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      bucket.openDownloadStream(new mongoose.Types.ObjectId(fileId))
+        .on('data', (chunk) => chunks.push(chunk))
+        .on('error', (err) => reject(err))
+        .on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    });
+  }
   constructor(
     @InjectModel(Project.name)
     private readonly projectModel: Model<ProjectDocument>,
@@ -309,4 +346,164 @@ export class ProjectsService {
     await project.save();
     return this.findById(projectId, userId);
   }
+    // --- Project Retrieve Logic ---
+  async retrieveProject(projectId: string, payload: any, userId: string): Promise<void> {
+    // Optionally, validate user access to the project
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) throw new NotFoundException('Project not found');
+    const member = project.members.find(m => {
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
+    if (!member) throw new ForbiddenException('Access denied');
+
+
+    // Only include allowed fields in the output payload
+    const projectObj = project.toObject();
+    const {
+      hash, owner, members, currentMode, checkpoints, __v, _id, ...rest
+    } = projectObj;
+    const outputPayload = { ...rest };
+
+    // Log to terminal
+    // eslint-disable-next-line no-console
+    console.log('[RETRIEVE PAYLOAD] Project data:', JSON.stringify(outputPayload, null, 2));
+
+    // Write the filtered payload to a JSON file
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const outputDir = path.join(process.cwd(), 'retrieve_payloads');
+    try {
+      await fs.mkdir(outputDir, { recursive: true });
+      const fileName = `payload_${projectId}_${Date.now()}.json`;
+      const filePath = path.join(outputDir, fileName);
+      await fs.writeFile(filePath, JSON.stringify(outputPayload, null, 2), 'utf-8');
+      // eslint-disable-next-line no-console
+      console.log(`[RETRIEVE PAYLOAD] Written to: ${filePath}`);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[RETRIEVE PAYLOAD] Error writing payload to file:', err);
+      throw new Error('Failed to write payload to file');
+    }
+    // In the future: call external API endpoint (URL from .env)
+    // Example:
+    // const apiUrl = process.env.RETRIEVE_API_URL;
+    // await axios.post(apiUrl, outputPayload);
+  }
+
+    // --- Fetch and cache CIF content for a node ---
+  async fetchAndCacheCifContent(projectId: string, nodeId: string, userId: string): Promise<ProjectDocument> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) throw new NotFoundException('Project not found');
+    const member = project.members.find(m => {
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
+    if (!member) throw new ForbiddenException('Access denied');
+    const node = project.knowledgeGraph.nodes.find((n: GraphNode) => n.id === nodeId);
+    if (!node) throw new NotFoundException('Node not found');
+    // If node.content is empty, try to load from DB or file
+    if (!node.content && node.fileUrl) {
+      // 1. Check if node.largeFileId exists (GridFS)
+      if (node.largeFileId) {
+        try {
+          console.log('[CIF DEBUG] Attempting to load large CIF from DB, fileId:', node.largeFileId);
+          const dbContent = await this.fetchLargeCifFromDb(node.largeFileId);
+          if (dbContent) {
+            node.content = dbContent;
+            await project.save();
+            console.log('[CIF DEBUG] Loaded large CIF from DB for node', nodeId);
+            return this.findById(projectId, userId);
+          }
+        } catch (err) {
+          console.error('[CIF DEBUG] Error loading large CIF from DB:', err);
+        }
+      }
+      // 2. Try to load from file system
+      const fs = await import('fs/promises');
+      try {
+        // Log the incoming fileUrl and cwd
+        // eslint-disable-next-line no-console
+        console.log('[CIF DEBUG] node.fileUrl:', node.fileUrl);
+        console.log('[CIF DEBUG] process.cwd():', process.cwd());
+        let filePath = node.fileUrl;
+        if (!filePath.startsWith('/') && !filePath.match(/^[A-Za-z]:\\/)) {
+          filePath = `${process.cwd()}/${filePath}`;
+        }
+        console.log('[CIF DEBUG] Resolved filePath:', filePath);
+        const MAX_CIF_SIZE = 10 * 1024 * 1024; // 10MB
+        const fileBuffer = await fs.readFile(filePath);
+        if (fileBuffer.length > MAX_CIF_SIZE) {
+          // Save to GridFS
+          const mongoose = await import('mongoose');
+          const conn = mongoose.connection;
+          if (conn.readyState !== 1) {
+            await new Promise((resolve, reject) => {
+              conn.once('open', resolve);
+              conn.once('error', reject);
+            });
+          }
+          const bucket = await getGridFSBucket(conn);
+          const uploadStream = bucket.openUploadStream(node.label || node.id || 'cif-file');
+          uploadStream.end(fileBuffer);
+          const fileId = uploadStream.id;
+          node.largeFileId = fileId.toString();
+          await new Promise((resolve, reject) => {
+            uploadStream.on('finish', resolve);
+            uploadStream.on('error', reject);
+          });
+          console.log('[CIF DEBUG] Saved large CIF to DB, fileId:', fileId);
+        } else {
+          node.content = fileBuffer.toString('utf-8');
+        }
+        await project.save();
+        console.log('[CIF DEBUG] Successfully loaded CIF content for node', nodeId, 'size:', fileBuffer.length);
+      } catch (err) {
+        console.error('[CIF DEBUG] Error reading CIF file:', err);
+        throw new NotFoundException('Could not read CIF file: ' + err);
+      }
+    }
+    return this.findById(projectId, userId);
+  }
+    async aiAnalysis(projectId: string, payload: any, userId: string): Promise<void> {
+    // AI Co-Scientist Analysis logic
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) throw new NotFoundException('Project not found');
+    const member = project.members.find(m => {
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
+    if (!member) throw new ForbiddenException('Access denied');
+
+    // Only include allowed fields in the output payload
+    const projectObj = project.toObject();
+    const { hash, owner, members, currentMode, checkpoints, __v, _id, ...rest } = projectObj;
+    const outputPayload = { ...rest };
+
+    // Log to terminal
+    // eslint-disable-next-line no-console
+    console.log('[AI ANALYSIS PAYLOAD] Project data:', JSON.stringify(outputPayload, null, 2));
+
+    // Write the filtered payload to a JSON file
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const outputDir = path.join(process.cwd(), 'ai_analysis_payloads');
+    try {
+      await fs.mkdir(outputDir, { recursive: true });
+      const fileName = `ai_analysis_${projectId}_${Date.now()}.json`;
+      const filePath = path.join(outputDir, fileName);
+      await fs.writeFile(filePath, JSON.stringify(outputPayload, null, 2), 'utf-8');
+      // eslint-disable-next-line no-console
+      console.log(`[AI ANALYSIS PAYLOAD] Written to: ${filePath}`);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[AI ANALYSIS PAYLOAD] Error writing payload to file:', err);
+      throw new Error('Failed to write payload to file');
+    }
+    // In the future: call external API endpoint (URL from .env)
+    // Example:
+    // const apiUrl = process.env.AI_ANALYSIS_API_URL;
+    // await axios.post(apiUrl, outputPayload);
+  }
+
 }

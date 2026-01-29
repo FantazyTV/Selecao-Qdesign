@@ -91,6 +91,9 @@ export class GraphNode {
   @Prop()
   fileUrl?: string;
 
+  @Prop()
+  largeFileId?: string;
+
   @Prop({ type: { x: Number, y: Number }, required: false })
   position: { x: number; y: number };
 
@@ -126,7 +129,7 @@ export class GraphEdge {
   @Prop({ required: true, enum: ['similar', 'cites', 'contradicts', 'supports', 'derived', 'custom'] })
   correlationType: string;
 
-  @Prop({ required: true, min: 0, max: 1 })
+  @Prop({ required: false, min: 0, max: 1 })
   strength: number;
 
   @Prop()

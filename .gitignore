@@ -30,3 +30,6 @@ response*.jsonl
 testing*.py
 *demo.py
 fastas
+retrieve_payloads
+
+ai_analysis_payloads

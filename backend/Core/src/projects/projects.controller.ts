@@ -164,6 +164,42 @@ export class ProjectsController {
     @CurrentUser() user: CurrentUserData,
   ) {
     const project = await this.projectsService.addNodeNote(id, nodeId, { text: body.text }, user.userId);
+    console.log(project);
     return { project };
   }
+    // --- Project Retrieve Endpoint ---
+  @Post(':id/retrieve')
+  async retrieveProject(
+    @Param('id') id: string,
+    @Body() payload: any,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    // Call the service method (to be implemented)
+    await this.projectsService.retrieveProject(id, payload, user.userId);
+    return { message: 'Retrieve request received' };
+  }
+    // --- Fetch and cache CIF content for a node ---
+  @Post(':id/knowledge-graph/nodes/:nodeId/fetch-cif-content')
+  async fetchCifContent(
+    @Param('id') id: string,
+    @Param('nodeId') nodeId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    // Calls service to fetch and cache content
+    const project = await this.projectsService.fetchAndCacheCifContent(id, nodeId, user.userId);
+    // Return the updated node
+    const node = project.knowledgeGraph.nodes.find((n: any) => n.id === nodeId);
+    return { content: node?.content || "" };
+  }
+    // --- AI Co-Scientist Analysis Endpoint ---
+  @Post(':id/ai-analysis')
+  async aiAnalysis(
+    @Param('id') id: string,
+    @Body() payload: any,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    await this.projectsService.aiAnalysis(id, payload, user.userId);
+    return { message: 'AI analysis request received' };
+  }
+
 }
