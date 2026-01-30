@@ -138,13 +138,12 @@ The **UI** updates in real-time to ensure easy collaboratoin between users.
 
 see a detailed architecture image:
 https://drive.google.com/file/d/1Q-FJCkogA3mnIx0_51hClG9zEKPq8VBq/view?usp=sharing
----
 
-## 🔍 Qdrant Integration & XQdrant
+## Qdrant Integration & XQdrant
 
 ### The Challenge with Standard Qdrant
 
-Traditional vector databases like Qdrant excel at finding similar items using metrics like cosine similarity. However, they provide a **black box** result: "These two proteins are 95% similar"—but *why*? For biological research, understanding the *biological reasons* for similarity is crucial.
+Traditional vector databases like Qdrant excel at finding similar items using metrics like cosine similarity. However, they provide a **black box** result: "These two proteins are 95% similar"—but *why*? For biological research, understanding the *biological reasons* for similarity is **GOLD**.
 
 ### Our Solution: XQdrant
 
@@ -160,7 +159,7 @@ Traditional vector databases like Qdrant excel at finding similar items using me
    - Returns dimension IDs and contribution scores
 
 4. **Biological Interpretation**: 
-   - Each ESM2 dimension is pre-mapped to biological properties (via probing experiments)
+   - Each ESM2 dimension is pre-mapped to biological properties (via probing experiments, see more about it in [Interpretability Docs](docs/interpretability_README.md))
    - Mapping stored in `esm2_dim_to_biological_property.json`
    - Properties include: secondary structure (alpha helix, beta sheet), surface exposure, flexibility, charge distribution, hydrophobicity, etc.
 
@@ -257,7 +256,7 @@ curl -X POST "http://localhost:6333/collections/structures/points/search" \
 
 ---
 
-### Inputs (Multimodal)
+## Inputs (Multimodal)
 The system must accept the following inputs from the user:
 1.  **Text and pdf**
 2.  **Structural Files:** 3D protein files (PDB/CIF format).
@@ -265,6 +264,348 @@ The system must accept the following inputs from the user:
 4.  **Images :** Chemical structure drawings or microscopy data.
 
 ---
+
+## Setup & Installation
+
+### Prerequisites
+
+- **Node.js** 18+ and **pnpm**
+- **Python** 3.10+
+- **MongoDB** (local or MongoDB Atlas)
+- **PostgreSQL** (optional, for metadata)
+- **Rust** (for building XQdrant)
+- **Docker** (optional, for containerized deployment)
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/your-org/qdesign.git
+cd qdesign
+```
+
+### Step 2: Backend Core Setup (NestJS)
+
+```bash
+cd backend/Core
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+
+# Edit .env with your settings:
+# - MongoDB connection string
+# - JWT secret
+# - Service URLs (knowledge_service, retrieval_service, co_scientist_service)
+
+# Run in development mode
+npm run start:dev
+
+# Server will start on http://localhost:3000
+```
+
+### Step 3: Frontend Setup (Next.js)
+
+```bash
+cd ../../ui
+
+# Install dependencies
+pnpm install
+
+# Configure environment
+cp .env.example .env.local
+
+# Edit .env.local:
+# NEXT_PUBLIC_API_URL=http://localhost:3000
+# NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
+
+# Run development server
+pnpm dev
+
+# Run Socket.io server (in another terminal)
+pnpm dev:socket
+
+# Or run both together
+pnpm dev:all
+
+# Frontend: http://localhost:3000
+# Socket server: http://localhost:3001
+```
+
+### Step 4: XQdrant Setup
+
+```bash
+cd ../XQdrant
+
+# Build from source
+cargo build --release
+
+# Run the server
+./target/release/qdrant-server
+
+# XQdrant will start on http://localhost:6333
+```
+
+Alternatively, use Docker:
+```bash
+docker run -p 6333:6333 -v $(pwd)/qdrant_storage:/qdrant/storage xqdrant/xqdrant:latest
+```
+
+### Step 5: Data Pipeline Setup
+
+```bash
+cd ../Data/pipeline
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+
+# Edit .env:
+# - QDRANT_URL=http://localhost:6333
+# - POSTGRES_DSN (if using PostgreSQL)
+
+# Run test ingestion
+python scripts/test_ingestion.py
+```
+
+### Step 6: Microservices Setup
+
+#### Knowledge Service
+```bash
+cd ../../backend/Services/knowledge_service
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+
+# Run service
+uvicorn main:app --reload --port 8001
+
+# Service will start on http://localhost:8001
+```
+
+#### Retrieval Service
+```bash
+cd ../retrieval_service
+
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+
+uvicorn main:app --reload --port 8002
+# Service: http://localhost:8002
+```
+
+#### Co-Scientist Service
+```bash
+cd ../co_scientist_service
+
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+
+# Configure LLM API keys (OpenAI, Anthropic, etc.)
+uvicorn main:app --reload --port 8003
+# Service: http://localhost:8003
+```
+
+### Step 7: Verify Installation
+
+1. **Backend Core**: Visit http://localhost:3000/health
+2. **Frontend**: Visit http://localhost:3000 (Next.js)
+3. **XQdrant**: `curl http://localhost:6333/collections`
+4. **Knowledge Service**: `curl http://localhost:8001/health`
+5. **Retrieval Service**: `curl http://localhost:8002/health`
+6. **Co-Scientist Service**: `curl http://localhost:8003/health`
+
+### Environment Variables Summary
+
+**Backend Core (.env)**:
+```env
+MONGODB_URI=mongodb://localhost:27017/qdesign
+JWT_SECRET=your-secret-key
+KNOWLEDGE_SERVICE_URL=http://localhost:8001
+RETRIEVAL_SERVICE_URL=http://localhost:8002
+COSCIENTIST_SERVICE_URL=http://localhost:8003
+```
+
+**Frontend (.env.local)**:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
+```
+
+**Data Pipeline (.env)**:
+```env
+QDRANT_URL=http://localhost:6333
+POSTGRES_DSN=postgresql://user:pass@localhost:5432/qdesign
+```
+
+**Microservices (.env)**:
+```env
+QDRANT_URL=http://localhost:6333
+OPENAI_API_KEY=your-key  # For Co-Scientist
+```
+## 💡 Usage Examples
+
+### Example 1: Creating a Project and Uploading Data
+
+```bash
+# 1. Register and login via the UI
+# Navigate to http://localhost:3000
+
+# 2. Create a new project
+# Click "New Project" → Name: "Protein Stability Analysis"
+# Objective: "Identify thermostable protein variants"
+# Constraints: "Temperature range 60-80°C, pH 6-8"
+
+# 3. Upload data files
+# Drag and drop:
+#   - research_papers/thermostability_review.pdf
+#   - structures/1ABC.pdb
+#   - sequences/candidate_proteins.fasta
+#   - images/stability_curve.png
+
+# 4. Annotate files
+# Click on 1ABC.pdb → View 3D structure in NGL viewer
+# Add note: "Thermophilic enzyme from T. thermophilus"
+# Set trust level: "High"
+```
+
+### Example 2: Generating a Knowledge Graph
+
+```python
+# Via API (or use the UI's "Generate Graph" button)
+import requests
+
+# Trigger graph generation
+response = requests.post(
+    "http://localhost:8001/knowledge-graph/generate",
+    json={
+        "project_id": "proj_12345",
+        "similarity_threshold": 0.75,
+        "max_connections": 50
+    }
+)
+
+graph = response.json()
+print(f"Generated {len(graph['nodes'])} nodes, {len(graph['edges'])} edges")
+
+# Example edge with explanation:
+edge = graph['edges'][0]
+print(f"Connection: {edge['source']} → {edge['target']}")
+print(f"Similarity: {edge['weight']}")
+print(f"Reason: {edge['biological_explanation']}")
+# Output: "Similar alpha-helix propensity (dim 1160: 85%), surface accessibility (dim 234: 6%)"
+```
+
+### Example 3: Querying XQdrant with Explanation
+
+```python
+from qdrant_client import QdrantClient
+
+client = QdrantClient(url="http://localhost:6333")
+
+# Search for similar protein structures
+results = client.search(
+    collection_name="qdesign_structures",
+    query_vector=[0.23, -0.15, ..., 0.44],  # ESM2 embedding of query protein
+    limit=10,
+    with_explanation=True  # Enable explainability
+)
+
+for result in results:
+    print(f"Protein ID: {result.id}, Score: {result.score}")
+    
+    # Decode biological meaning
+    for dim_contrib in result.score_explanation.top_dimensions:
+        dim_id = dim_contrib['dimension']
+        contribution = dim_contrib['contribution']
+        
+        # Map to biological property (using precomputed mapping)
+        bio_property = dimension_to_property[dim_id]
+        print(f"  - {bio_property}: {contribution*100:.1f}% contribution")
+```
+
+### Example 4: Using the AI Co-Scientist
+
+```python
+# Via API or UI
+import requests
+
+# Send query to Co-Scientist
+response = requests.post(
+    "http://localhost:8003/coscientist/query",
+    json={
+        "project_id": "proj_12345",
+        "query": "What mutations could improve thermostability based on similar proteins in my knowledge graph?",
+        "context": {
+            "include_graph": True,
+            "include_files": True,
+            "constraints": ["Temperature: 60-80°C", "pH: 6-8"]
+        }
+    }
+)
+
+# Response is chunked for iterative refinement
+for chunk in response.json()['chunks']:
+    print(f"\n--- {chunk['type']} ---")
+    print(chunk['content'])
+    print(f"Evidence: {chunk['citations']}")
+    
+    # User can comment on each chunk:
+    # "Explain the mechanism behind mutation L123A"
+    # "Don't consider paper XYZ, it uses different conditions"
+```
+---
+
+### Example 5: Expanding the Knowledge Graph
+
+```bash
+# Use the UI's "Expand Graph" feature
+# 1. Select a node (e.g., a protein structure)
+# 2. Click "Find Related"
+# 3. Choose expansion sources:
+#    - arXiv papers mentioning the protein
+#    - PDB structures with >70% similarity
+#    - Related sequences from UniProt
+
+# The graph updates in real-time with new nodes/edges
+```
+
+### Example 6: Exporting Research to IEEE PDF
+
+```javascript
+// Via UI: Project → Export → IEEE Template
+// Or programmatically:
+
+const response = await fetch('/api/projects/proj_12345/export', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    format: 'ieee_pdf',
+    include: ['abstract', 'methods', 'results', 'knowledge_graph', 'references']
+  })
+});
+
+const blob = await response.blob();
+// Download PDF with formatted research paper
+```
 
 ## Documentation
 
