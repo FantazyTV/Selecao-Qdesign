@@ -60,7 +60,10 @@ class CriticAgent(BaseAgent):
         """Validate LLM response and add computed metrics."""
         if "decision" not in response:
             scores = response.get("scores", {})
-            overall = scores.get("overall", {})
+            # Handle case where scores is a list instead of dict
+            if isinstance(scores, list):
+                scores = {}
+            overall = scores.get("overall", {}) if isinstance(scores, dict) else {}
             score = overall.get("score", 5) if isinstance(overall, dict) else 5
             response["decision"] = "APPROVE" if score >= 7 else ("REVISE" if score >= 5 else "REJECT")
 
@@ -84,15 +87,23 @@ class CriticAgent(BaseAgent):
 
     def get_revision_guidance(self, evaluation: dict) -> dict:
         """Extract structured revision guidance from evaluation."""
+        weaknesses = evaluation.get("weaknesses", [])
+        scores = evaluation.get("scores", {})
+        # Handle case where scores/weaknesses are not the expected types
+        if not isinstance(scores, dict):
+            scores = {}
+        if not isinstance(weaknesses, list):
+            weaknesses = []
+        
         return {
             "required_revisions": evaluation.get("required_revisions", []),
             "improvement_suggestions": evaluation.get("improvement_suggestions", []),
             "weaknesses_to_address": [
-                w for w in evaluation.get("weaknesses", [])
-                if w.get("severity") in ["critical", "major"]
+                w for w in weaknesses
+                if isinstance(w, dict) and w.get("severity") in ["critical", "major"]
             ],
             "focus_areas": [
-                cat for cat, data in evaluation.get("scores", {}).items()
+                cat for cat, data in scores.items()
                 if isinstance(data, dict) and data.get("score", 10) < 6
             ]
         }

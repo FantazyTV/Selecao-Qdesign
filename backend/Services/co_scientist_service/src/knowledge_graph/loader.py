@@ -104,6 +104,6 @@ class KnowledgeGraphLoader:
         return KGEdge(
             id=data["id"], source=data["source"], target=data["target"],
             label=data["label"], correlation_type=data.get("correlationType", "unknown"),
-            strength=float(data.get("strength", 0.0)),
+            strength=float(data.get("strength", data.get("confidence", 0.0))),
             explanation=data.get("explanation"), metadata=data.get("metadata", {}),
         )

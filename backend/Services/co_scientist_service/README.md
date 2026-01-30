@@ -2,6 +2,14 @@
 
 A **SciAgents-inspired multi-agent scientific discovery system** for generating novel biological research hypotheses from knowledge graphs.
 
+## 🌟 Features
+
+- **5-Agent Pipeline**: Planner → Ontologist → Scientist → Scientist² → Critic
+- **Bio-Lab Themed UI**: Modern glassmorphism Streamlit interface
+- **Human-in-the-Loop**: Configurable review checkpoints
+- **JSON Export**: Workflow results saved to `data/workflow_outputs/`
+- **Robust Error Handling**: Connection retries, type safety, graceful fallbacks
+
 ## Overview
 
 The Co-Scientist Service implements an automated scientific reasoning pipeline that:
@@ -365,7 +373,7 @@ API Documentation: `http://localhost:8000/docs`
 
 ### Option 2: Streamlit Interactive UI
 
-The Streamlit app provides an interactive interface for testing the agent pipeline:
+The Streamlit app provides an elegant bio-lab themed interface for testing the agent pipeline:
 
 ```bash
 cd backend/Services/co_scientist_service
@@ -376,12 +384,13 @@ streamlit run streamlit_app.py --server.port 8501
 The UI will be available at `http://localhost:8501`.
 
 #### Streamlit Features:
-- **Step-by-step workflow visualization** with progress indicators
-- **Token-by-token streaming output** for all agents
+- **Bio-Lab Aesthetic**: Clean, modern design with emerald/teal color scheme
+- **Step-by-step workflow visualization** with animated progress indicators
+- **Formatted agent outputs** with hypothesis cards, score bars, and decision badges
 - **HITL checkpoint UI** with approve/modify/reject buttons
 - **Configurable workflow options** (enable/disable agents, literature search)
-- **Post-processed output display** formatted for each agent type
-- **JSON export** of full workflow results
+- **JSON export** of full workflow results to `data/workflow_outputs/`
+- **Raw data viewer** with expandable JSON output
 
 ---
 
@@ -518,25 +527,27 @@ python -m pytest tests/test_hitl.py -v
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Knowledge Graph Loading | Complete | JSON parsing, validation |
-| Graph Indexing | Complete | Adjacency, reverse adjacency, hub detection |
-| Path Finding | Complete | 4 strategies implemented |
-| Subgraph Extraction | Complete | Context expansion, hub inclusion |
-| Multi-Path Exploration | Complete | Rich subgraphs with multiple strategies |
-| Planner Agent | Complete | Path selection with confidence scoring |
-| Ontologist Agent | Complete | Semantic interpretation of concepts |
-| Scientist Agent | Complete | 7-point hypothesis framework |
-| Scientist2 Agent | Complete | Quantitative expansion with literature |
-| Critic Agent | Complete | Multi-criteria evaluation |
-| Agent Streaming | Complete | Token-by-token output for all agents |
-| HITL Checkpoints | Complete | Configurable pause/resume points |
-| Workflow Orchestration | Complete | Iterative critique loop |
-| SSE Streaming | Complete | Real-time event streaming |
-| LLM Integration | Complete | OpenRouter provider with retry logic |
-| Response Validation | Complete | Pydantic schemas for all agents |
-| Streamlit UI | Complete | Interactive testing interface |
-| Prometheus Metrics | Complete | Comprehensive observability |
-| End-to-End Tests | Complete | Full test coverage |
+| Knowledge Graph Loading | ✅ Complete | JSON parsing, validation, confidence field support |
+| Graph Indexing | ✅ Complete | Adjacency, reverse adjacency, hub detection |
+| Path Finding | ✅ Complete | 4 strategies (shortest, random, diverse, weighted) |
+| Subgraph Extraction | ✅ Complete | Context expansion, hub inclusion |
+| Multi-Path Exploration | ✅ Complete | Rich subgraphs with multiple strategies |
+| Planner Agent | ✅ Complete | Path selection with confidence scoring |
+| Ontologist Agent | ✅ Complete | Semantic interpretation of concepts |
+| Scientist Agent | ✅ Complete | 7-point hypothesis framework |
+| Scientist2 Agent | ✅ Complete | Quantitative expansion with literature |
+| Critic Agent | ✅ Complete | Multi-criteria evaluation, type-safe |
+| Connection Handling | ✅ Complete | Auto-retry with fresh client on errors |
+| Type Safety | ✅ Complete | Handles list/dict variations from LLM |
+| HITL Checkpoints | ✅ Complete | Configurable pause/resume points |
+| Workflow Orchestration | ✅ Complete | Iterative critique loop |
+| SSE Streaming | ✅ Complete | Real-time event streaming |
+| LLM Integration | ✅ Complete | OpenRouter provider with retry logic |
+| Response Validation | ✅ Complete | Pydantic schemas for all agents |
+| Streamlit UI | ✅ Complete | Bio-lab themed interface |
+| JSON Export | ✅ Complete | Results saved to data/workflow_outputs/ |
+| Prometheus Metrics | ✅ Complete | Comprehensive observability |
+| End-to-End Tests | ✅ Complete | Full test coverage (12/12 passing) |
 
 ---
 

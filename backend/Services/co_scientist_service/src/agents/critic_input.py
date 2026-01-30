@@ -10,13 +10,28 @@ def prepare_critic_input(
     iteration: int
 ) -> dict:
     """Prepare comprehensive input for the Critic LLM prompt."""
+    # Ensure inputs are dicts
+    if not isinstance(hypothesis, dict):
+        hypothesis = {}
+    if not isinstance(subgraph, dict):
+        subgraph = {}
+    if not isinstance(kg_metadata, dict):
+        kg_metadata = {}
+    
     edges = subgraph.get("edges", [])
+    if not isinstance(edges, list):
+        edges = []
+    # Filter edges to only dicts
+    edges = [e for e in edges if isinstance(e, dict)]
+    
     high_conf = [e for e in edges if e.get("strength", 0) >= 0.9]
     low_conf = [e for e in edges if e.get("strength", 0) < 0.5]
 
     title, statement = _extract_hypothesis_text(hypothesis)
     mechanism_steps = _extract_mechanism_steps(hypothesis)
     citations = hypothesis.get("citations", {})
+    if not isinstance(citations, dict):
+        citations = {}
 
     return {
         "iteration": iteration,
@@ -39,6 +54,8 @@ def prepare_critic_input(
 
 def _extract_hypothesis_text(hypothesis: dict) -> tuple[str, str]:
     """Extract title and statement from hypothesis."""
+    if not isinstance(hypothesis, dict):
+        return "", ""
     h = hypothesis.get("hypothesis", {})
     if isinstance(h, dict):
         return h.get("title", ""), h.get("statement", "")
@@ -47,9 +64,13 @@ def _extract_hypothesis_text(hypothesis: dict) -> tuple[str, str]:
 
 def _extract_mechanism_steps(hypothesis: dict) -> list:
     """Extract mechanism steps from hypothesis."""
+    if not isinstance(hypothesis, dict):
+        return []
     mechanisms = hypothesis.get("mechanisms", {})
     if isinstance(mechanisms, dict):
-        return mechanisms.get("step_by_step", [])
+        steps = mechanisms.get("step_by_step", [])
+        if isinstance(steps, list):
+            return steps
     return []
 
 
@@ -61,10 +82,10 @@ def _build_confidence_dist(edges: list, high_conf: list, low_conf: list) -> dict
         "low_confidence": len(low_conf),
         "high_conf_edges": [
             {"source": e.get("source"), "target": e.get("target"), "strength": e.get("strength")}
-            for e in high_conf[:5]
+            for e in high_conf[:5] if isinstance(e, dict)
         ],
         "low_conf_edges": [
             {"source": e.get("source"), "target": e.get("target"), "strength": e.get("strength")}
-            for e in low_conf[:5]
+            for e in low_conf[:5] if isinstance(e, dict)
         ]
     }
