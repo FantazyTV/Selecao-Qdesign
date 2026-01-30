@@ -162,6 +162,20 @@ export const projectsApi = {
       body: JSON.stringify({ text }),
     }),
 
+
+  /**
+   * Expand a node in the knowledge graph
+   * @param projectId Project ID
+   * @param node The node to expand (prompted node)
+   * @returns {Promise<{ message: string }>}
+   */
+  expandNode: (projectId: string, node: any) =>
+    request<{ message: string }>(`/projects/${projectId}/expand`, {
+      method: 'POST',
+      body: JSON.stringify({ node }),
+    }),
+
+
   /**
    * Update a node in the knowledge graph
    * @param projectId Project ID
@@ -202,6 +216,16 @@ export const projectsApi = {
 
     fetchCifContent: (projectId: string, nodeId: string) =>
       request<{ content: string }>(`/projects/${projectId}/knowledge-graph/nodes/${nodeId}/fetch-cif-content`, {
+        method: 'POST',
+      }),
+
+    fetchPdfContent: (projectId: string, nodeId: string) =>
+      request<{ content: string }>(`/projects/${projectId}/knowledge-graph/nodes/${nodeId}/fetch-pdf-content`, {
+        method: 'POST',
+      }),
+
+    fetchImageContent: (projectId: string, nodeId: string) =>
+      request<{ content: string }>(`/projects/${projectId}/knowledge-graph/nodes/${nodeId}/fetch-image-content`, {
         method: 'POST',
       }),
 

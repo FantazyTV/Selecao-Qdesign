@@ -178,7 +178,8 @@ function CustomNode({ data, selected }: {
 
       {/* Expand prompt */}
       {isExpanded && (
-        <div className="absolute left-1/2 top-full z-10 -translate-x-1/2 mt-2 w-48 rounded-lg bg-white shadow-lg p-2 flex flex-col gap-2">
+        <div className="absolute left-1/2 top-full z-10 -translate-x-1/2 mt-2 w-48 rounded-lg bg-white shadow-lg p-2 flex flex-col gap-2"
+             onClick={(e) => e.stopPropagation()}>
           <input
             className="border rounded px-2 py-1 text-sm"
             placeholder="Expand prompt..."
@@ -187,7 +188,40 @@ function CustomNode({ data, selected }: {
           />
           <button
             className="bg-green-600 text-white rounded px-2 py-1 text-sm"
-            onClick={() => { setExpandedNodeId(null); setExpandPrompt(""); /* TODO: call backend */ }}
+            onClick={async () => {
+              setExpandedNodeId(null);
+              const projectId = typeof window !== 'undefined' ? window.location.pathname.split("/").find((p, i, arr) => arr[i - 1] === 'project') || '' : '';
+              // Find the project object from the API (same as aiAnalysis)
+              let projectPayload = null;
+              console.log(projectId);
+              try {
+                const res = await projectsApi.get(projectId);
+                const project = res.project;
+                // Remove knowledgeGraph, coScientistSteps, checkpoints, members, owners, hash
+                const {
+                  coScientistSteps,
+                  checkpoints,
+                  members,
+                  owners,
+                  hash,
+                  ...rest
+                } = project;
+                projectPayload = { ...rest };
+              } catch (err) {
+                alert('Failed to fetch project for expand.');
+                return;
+              }
+              // Send to expand endpoint
+              try {
+                const payload = { ...projectPayload, nodeId: data.id, prompt: expandPrompt };
+                const resp = await projectsApi.expandNode(projectId, payload);
+                console.log('[Expand] Response:', resp);
+                alert('Expand request sent!');
+              } catch (err) {
+                alert('Failed to send expand request.');
+              }
+              setExpandPrompt("");
+            }}
           >
             Expand
           </button>

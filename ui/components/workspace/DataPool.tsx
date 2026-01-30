@@ -173,19 +173,8 @@ export function DataPool({
             
             let processedContent: string;
             if (type === "image" || type === "pdf") {
-              if (content.startsWith("data:")) {
-                const parts = content.split(",");
-                if (parts.length === 2) {
-                  processedContent = parts[1];
-                  addLog(`🔄 Extracted base64 content (${processedContent.length} chars)`);
-                } else {
-                  addLog(`❌ Invalid data URL format for ${type}`);
-                  throw new Error(`Invalid data URL format for ${type} file`);
-                }
-              } else {
-                addLog(`❌ Expected data URL for ${type}, got: ${content.substring(0, 50)}...`);
-                throw new Error(`Expected data URL for ${type} file`);
-              }
+              processedContent = content; // keep full data URL
+              addLog(`🔄 Keeping data URL (${processedContent.length} chars)`);
             } else {
               processedContent = content;
             }

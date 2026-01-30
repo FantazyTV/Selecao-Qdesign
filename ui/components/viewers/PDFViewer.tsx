@@ -55,11 +55,22 @@ export function PDFViewer({ content, fileUrl }: PDFViewerProps) {
   };
 
   const pdfSource = useMemo(() => {
-    return content
-      ? { data: atob(content) }
-      : fileUrl
-      ? { url: fileUrl }
-      : null;
+    if (content) {
+      if (content.startsWith('data:')) {
+        return { url: content };
+      } else {
+        // Convert base64 to Uint8Array
+        const binaryString = atob(content);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        return { data: bytes };
+      }
+    } else if (fileUrl) {
+      return { url: fileUrl };
+    }
+    return null;
   }, [content, fileUrl]);
 
   if (!pdfSource) {

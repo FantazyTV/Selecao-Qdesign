@@ -16,7 +16,7 @@ export function ImageViewer({ content, fileUrl, alt = "Image" }: ImageViewerProp
   const [rotation, setRotation] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const imageSrc = content ? `data:image/png;base64,${content}` : fileUrl || "";
+  const imageSrc = content ? (content.startsWith('data:') ? content : `data:image/png;base64,${content}`) : fileUrl || "";
 
   const zoomIn = () => {
     setScale((prev) => Math.min(prev + 0.25, 4));

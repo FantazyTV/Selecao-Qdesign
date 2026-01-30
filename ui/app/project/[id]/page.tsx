@@ -784,7 +784,7 @@ export default function ProjectWorkspace({
             {/* Team Avatars */}
             <div className="ml-2 hidden md:flex -space-x-2">
               {(project.members || []).slice(0, 3).map((member: any, idx: number) => (
-                <Tooltip key={member.user.id}>
+                <Tooltip key={member?.user?.id || idx}>
                   <TooltipTrigger asChild>
                     <Avatar className="h-8 w-8 border-2 border-gray-800">
                       <AvatarFallback
@@ -795,11 +795,11 @@ export default function ProjectWorkspace({
                           idx === 2 && "bg-teal-950 text-teal-400"
                         )}
                       >
-                        {member.user.name?.charAt(0) || "U"}
+                        {member?.user?.name?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </TooltipTrigger>
-                  <TooltipContent>{member.user.name || "User"}</TooltipContent>
+                  <TooltipContent>{member?.user?.name || "User"}</TooltipContent>
                 </Tooltip>
               ))}
             </div>
@@ -940,6 +940,52 @@ export default function ProjectWorkspace({
                     data: content || "",
                     position: { x: 100, y: 100 },
                     size: { width: 800, height: 600 },
+                    minimized: false,
+                  };
+                  setViewers((prev) => [...prev, newViewer]);
+                  return;
+                }
+                if (node.type === "pdf") {
+                  let content = node.content;
+                  if (!content && node.fileUrl) {
+                    try {
+                      const res = await projectsApi.fetchPdfContent(projectId, node.id);
+                      content = res.content;
+                    } catch (err) {
+                      alert("Failed to load PDF content");
+                      return;
+                    }
+                  }
+                  const newViewer: ViewerWindow = {
+                    id: uuidv4(),
+                    type: "pdf",
+                    title: node.label,
+                    data: content || "",
+                    position: { x: 100, y: 100 },
+                    size: { width: 800, height: 600 },
+                    minimized: false,
+                  };
+                  setViewers((prev) => [...prev, newViewer]);
+                  return;
+                }
+                if (node.type === "image") {
+                  let content = node.content;
+                  if (!content && node.fileUrl) {
+                    try {
+                      const res = await projectsApi.fetchImageContent(projectId, node.id);
+                      content = res.content;
+                    } catch (err) {
+                      alert("Failed to load image content");
+                      return;
+                    }
+                  }
+                  const newViewer: ViewerWindow = {
+                    id: uuidv4(),
+                    type: "image",
+                    title: node.label,
+                    data: content || "",
+                    position: { x: 100, y: 100 },
+                    size: { width: 600, height: 400 },
                     minimized: false,
                   };
                   setViewers((prev) => [...prev, newViewer]);
