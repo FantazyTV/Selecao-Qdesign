@@ -12,10 +12,10 @@ from ..knowledge_graph import KnowledgeGraphLoader, KnowledgeGraphIndex
 router = APIRouter(prefix="/v2/knowledge-graph", tags=["knowledge-graph"])
 
 
-@router.get("/load")
+@router.get("/load", summary="Load knowledge graph")
 async def load_knowledge_graph(kg_path: str):
     """Load and analyze a knowledge graph JSON file."""
-    REQUESTS.labels("/v2/knowledge-graph/load").inc()
+    REQUESTS.labels(endpoint="/v2/knowledge-graph/load", method="GET", status="success").inc()
 
     try:
         path = Path(kg_path)
@@ -43,10 +43,10 @@ async def load_knowledge_graph(kg_path: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/nodes")
+@router.get("/nodes", summary="Get KG nodes")
 async def get_kg_nodes(kg_path: str, node_type: Optional[str] = None, limit: int = Query(default=50, le=500)):
     """Get nodes from knowledge graph, optionally filtered by type."""
-    REQUESTS.labels("/v2/knowledge-graph/nodes").inc()
+    REQUESTS.labels(endpoint="/v2/knowledge-graph/nodes", method="GET", status="success").inc()
 
     try:
         loader = KnowledgeGraphLoader(kg_path)
@@ -67,10 +67,10 @@ async def get_kg_nodes(kg_path: str, node_type: Optional[str] = None, limit: int
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/neighbors/{node_id}")
+@router.get("/neighbors/{node_id}", summary="Get node neighbors")
 async def get_node_neighbors(kg_path: str, node_id: str):
     """Get neighbors of a specific node."""
-    REQUESTS.labels("/v2/knowledge-graph/neighbors").inc()
+    REQUESTS.labels(endpoint="/v2/knowledge-graph/neighbors", method="GET", status="success").inc()
 
     try:
         loader = KnowledgeGraphLoader(kg_path)

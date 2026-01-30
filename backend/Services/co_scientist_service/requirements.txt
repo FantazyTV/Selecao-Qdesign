@@ -16,6 +16,9 @@ prometheus-client
 opentelemetry-api
 opentelemetry-sdk
 httpx
+python-multipart
 pytest
+pytest-asyncio
 streamlit
 plotly
+xmltodict

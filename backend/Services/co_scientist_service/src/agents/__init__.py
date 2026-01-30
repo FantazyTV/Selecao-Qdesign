@@ -12,6 +12,8 @@ from .confidence import (
 from .planner_agent import PlannerAgent
 from .scientist_agent import ScientistAgent
 from .critic_agent import CriticAgent
+from .ontologist_agent import OntologistAgent
+from .scientist2_agent import Scientist2Agent
 
 __all__ = [
     # Base
@@ -30,4 +32,6 @@ __all__ = [
     "PlannerAgent",
     "ScientistAgent",
     "CriticAgent",
+    "OntologistAgent",
+    "Scientist2Agent",
 ]

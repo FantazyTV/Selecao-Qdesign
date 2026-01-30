@@ -131,6 +131,15 @@ class BaseAgent:
         async for chunk in provider.stream(messages):
             yield chunk
 
+    async def run_stream(self, state: dict) -> AsyncIterator[str]:
+        """Stream the agent's response token by token.
+        
+        Override in subclasses to provide streaming behavior.
+        Default implementation falls back to non-streaming.
+        """
+        result = await self.run(state)
+        yield json.dumps(result.output, indent=2)
+
     def _parse_llm_response(self, response: dict, context: str = "") -> dict:
         """Extract and parse JSON content from LLM API response.
         
