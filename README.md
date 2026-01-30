@@ -6,11 +6,17 @@
 
 Qdesign is a workspace for scientist where they can **create** "projects" (like rooms), specify the project's objectives, constraints and notes and **upload** their own files (pdfs, cif, safta, images and text), annotate and comment them and visualize them before **creating a tailored knowledge graph** for their project, powered by **Qdarnt**. The knowledge graph consists of nodes of multimodal files (mixed together) and edges that represent the semantic meaning or the relation between the two nodes. Then they can expand the knowledge graph from the search engine, comment data points and mark them as high trust or not.. and finally run a coscientist that takes all the data of the workspace and tries to reach the objective without violating constraints. the response of the scientist is in chunks, and each chunk is commentable (explain this further, don't use this paper...) so the co scientist can built up a new response based on that. we also feature git like history for each secondary objective of the project and cover exporting research into pdf format in the template of IEEE research papers.
 
+## Video URL:
+
+
+
 ## Live URL (no LLM and retrieval endpoints included because of free tier limitations):
 
 https://qdesign.moetezfradi.me 
 
-credentials: 123@gmail.com password: 123456
+you can use these credentials: **123@gmail.com** password: **123456** to login and see the project shown in the video demo.
+See the data pool content, the knowledge graph and the elements of it (yes, with visualisation for most nodes !)
+
 ---
 ## Team Members
 
