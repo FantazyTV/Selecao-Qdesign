@@ -4,12 +4,42 @@ An advanced AI-powered service for processing multi-modal data pools and generat
 
 ## 🚀 Features
 
-- **Multi-Modal Data Processing**: Handle PDF, CIF, PDB, text, and image files
+- **Multi-Modal Data Processing**: Handle PDF, CIF, PDB, FASTA, text, and image files
+- **Depth-2 Graph Generation**: Apply high-level tools on inputs AND their results for richer graphs
 - **AI-Powered Analysis**: Specialized LLM tools for content analysis and relationship detection  
 - **Knowledge Graph Generation**: Create linked graphs showing relationships between data entries
-- **Iterative Retrieval**: Continuously expand graphs based on research objectives
+- **PDF Intelligence**: Extract proteins, find similar documents, and related images from PDFs
+- **Image Processing**: Find related PDFs based on image content via OCR or metadata
+- **Protein Analysis**: Query by ID, sequence, or structure with vector similarity search
 - **Objective-Based Intelligence**: Analyze content relevance to specific research goals
 - **Scalable Architecture**: Both synchronous and asynchronous processing options
+
+## 🎯 New in v2.0: Multimodal Depth-2 Graphs
+
+### What's New
+
+The service now generates **depth-2 graphs** for PDF and image inputs:
+
+#### PDF Processing Pipeline
+```
+PDF → Extract Text → [3 parallel operations]
+  ├─> Extract proteins mentioned (PDB IDs, UniProt IDs, names)
+  ├─> Find similar PDFs (vector similarity)
+  └─> Find related images (CLIP similarity)
+  └─> Merge all 3 graphs
+```
+
+#### Image Processing Pipeline  
+```
+Image → Parse (OCR) → Find related PDFs
+  └─> Return graph with Image→PDF relationships
+```
+
+### Benefits
+- **Richer Context**: Multi-level relationships reveal hidden connections
+- **Cross-Modal Links**: Connect proteins, papers, and images automatically
+- **Research Discovery**: Find related work you might have missed
+- **Knowledge Integration**: Unify disparate data sources into one graph
 
 ## 🏗️ Architecture Overview
 
@@ -17,32 +47,31 @@ An advanced AI-powered service for processing multi-modal data pools and generat
 
 1. **Multi-Modal Agent** (`agent/agent.py`)
    - Orchestrates the entire analysis pipeline
-   - Handles multi-modal data processing and graph generation
+   - Handles multi-modal data processing and depth-2 graph generation
    - Implements iterative retrieval strategies
+   - **NEW**: PDF and image processing with high-level tools
 
-2. **File Parsers** (`agent/tools/file_parser.py`)
+2. **High-Level Tools** (`agent/high_level_tools/`)
+   - `protein_graph_from_query.py` - Query proteins by ID
+   - `protein_graph_from_sequence.py` - Search by amino acid sequence
+   - `protein_graph_from_cif.py` - Parse CIF/PDB structures
+   - `protein_graph_from_pdf.py` - **NEW**: Extract proteins from PDFs
+   - `pdf_graph_from_pdf.py` - **NEW**: Find similar PDFs
+   - `image_graph_from_pdf.py` - **NEW**: Find related images
+   - `pdf_graph_from_image.py` - **NEW**: Find PDFs from images
+
+3. **File Parsers** (`agent/tools/parser/`)
    - PDF text extraction and metadata parsing
    - CIF/PDB protein structure analysis  
    - Image OCR processing
    - Text content analysis and entity extraction
 
-3. **LLM Analysis Tools** (`agent/tools/llm_analysis.py`)
-   - Content relevance analysis
-   - Relationship detection between data entries
-   - Entity and concept extraction
-   - Retrieval strategy planning
-   - Graph insights synthesis
-
 4. **Graph Objects** (`graph/graph_objects.py`)
    - Node and Edge data structures
    - Graph manipulation and serialization
+   - Graph merging utilities
 
-5. **Utility Functions** (`utils/processing.py`)
-   - Content similarity calculations
-   - Graph analysis and validation
-   - Embedding generation (placeholder)
-
-6. **API Layer** (`api/retrieval_router.py`)
+5. **API Layer** (`api/retrieval_router.py`)
    - FastAPI endpoints for data pool analysis
    - Async job management
    - Utility endpoints for individual operations
@@ -239,15 +268,64 @@ Default models can be configured via environment variables:
 
 ## 🧪 Testing
 
-```bash
-# Run the example
-python examples/api_usage_example.py
+### Quick Validation (No Server Required)
 
+```bash
+# Windows
+run_validation.bat
+
+# Unix/Linux/Mac
+chmod +x run_validation.sh
+./run_validation.sh
+
+# Or directly
+python validate_agent.py
+```
+
+This validates:
+- ✅ Backward compatibility (existing PDB/sequence processing)
+- ✅ New PDF functionality (depth-2 graphs)
+- ✅ Mixed input types (text + PDF + sequence)
+
+### Full Integration Test (Server Required)
+
+1. **Start the server**:
+```bash
+python app.py
+```
+
+2. **Run the comprehensive test**:
+```bash
+python test_multimodal_retrieval.py
+```
+
+This tests all input types:
+- CIF structure file (`pdbs/1EZA.cif`)
+- FASTA sequence file (`fastas/Q9ZSM8.fasta`)
+- PDF document (simulated research paper)
+- Text query ("insulin")
+
+Results are saved to `multimodal_retrieval_result_TIMESTAMP.json`
+
+### Manual API Testing
+
+```bash
 # Health check
 curl http://localhost:8000/api/v1/retrieval/health
 
-# Parse sample file
-curl -X POST "http://localhost:8000/api/v1/retrieval/parse-file" \
+# Get service stats
+curl http://localhost:8000/api/v1/retrieval/stats
+
+# Submit processing request (see test_multimodal_retrieval.py for full example)
+curl -X POST "http://localhost:8000/api/v1/retrieval/process" \
+  -H "Content-Type: application/json" \
+  -d @test_request.json
+
+# Check job status
+curl http://localhost:8000/api/v1/retrieval/status/{job_id}
+
+# Get results
+curl http://localhost:8000/api/v1/retrieval/result/{job_id}
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "content=Sample biomedical text&file_type=text&file_name=test.txt"
 ```

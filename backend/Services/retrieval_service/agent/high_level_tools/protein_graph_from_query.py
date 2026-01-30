@@ -81,6 +81,9 @@ def normalize_graph(graph_json):
         if node_type == "pdf":
             file_url = metadata.get("path", file_url)
 
+        if node_type == "image":
+            file_url = metadata.get("path", file_url)
+
         trust = "high"
         if metadata.get("source") == "web":
             trust = "medium"
@@ -234,7 +237,7 @@ def build_protein_graph_from_query(query: str):
 
     for db, id_ in central_nodes:
         log.info("Processing %s ID: %s", db.upper(), id_)
-        content, vector = None, None
+        content, vector, payload = None, None, None
 
         try:
             if db == "rcsb":
@@ -291,7 +294,7 @@ def build_protein_graph_from_query(query: str):
             label=id_,
             metadata={
                 "pdb_id": id_,
-                "cif_path": payload.get("cif_path") if db == "rcsb" else None,
+                "cif_path": payload.get("cif_path") if (payload and db == "rcsb") else None,
                 "sequence": content if db == "uniprot" else None
             }
         )

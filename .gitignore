@@ -38,3 +38,6 @@ images/
 text/
 sequences/
 structures/
+
+backend/Services/**/*.json
+*.png

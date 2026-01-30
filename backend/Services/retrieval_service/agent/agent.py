@@ -15,6 +15,11 @@ from utils.models import ProcessingRequest, GraphAnalysisResponse, GraphData, Gr
 from agent.high_level_tools.protein_graph_from_query import build_protein_graph_from_query
 from agent.high_level_tools.protein_graph_from_sequence import build_protein_graph_from_sequence
 from agent.high_level_tools.protein_graph_from_cif import build_protein_graph_from_cif
+from agent.high_level_tools.protein_graph_from_pdf import build_protein_graph_from_pdf
+from agent.high_level_tools.pdf_graph_from_pdf import build_pdf_graph_from_pdf
+from agent.high_level_tools.image_graph_from_pdf import build_image_graph_from_pdf
+from agent.high_level_tools.pdf_graph_from_image import build_pdf_graph_from_image
+from agent.tools.file_parser import ContentParser
 from graph.graph_merge_utils import merge_graphs
 
 
@@ -123,8 +128,110 @@ class MultiModalRetrievalAgent:
         logger.info(f"Processing item: {item.name} (type: {item.type})")
         tool_input = {"type": item.type, "name": item.name, "content": item.content}
         tool_output = None
+        
+        # For PDFs and images, we generate depth-2 graphs (apply tools on results)
+        depth_2_graphs = []
+        
         try:
-            if item.type.lower() in ['pdb', 'structure']:
+            # ===== Handle PDF files =====
+            if item.type.lower() == 'pdf':
+                if not item.content:
+                    logger.warning(f"PDF item {item.name} has no content")
+                    return {"nodes": [], "edges": []}
+                
+                # Parse PDF to extract text
+                pdf_text = None
+                try:
+                    parsed_pdf = ContentParser.parse_pdf(item.content)
+                    pdf_text = parsed_pdf.get("text_content", "")
+                except Exception as e:
+                    logger.warning(f"PDF parsing failed for {item.name}: {str(e)}")
+                    # Fallback: Try to use content as plain text for testing
+                    try:
+                        # If it's base64, try to decode it
+                        import base64
+                        decoded = base64.b64decode(item.content, validate=True)
+                        pdf_text = decoded.decode('utf-8', errors='ignore')
+                        logger.info(f"Using decoded text content for {item.name} (fallback)")
+                    except:
+                        # Last resort: use content as-is if it looks like text
+                        if isinstance(item.content, str) and len(item.content) > 50:
+                            pdf_text = item.content
+                            logger.info(f"Using plain text content for {item.name} (test mode)")
+                        else:
+                            logger.error(f"Cannot extract text from PDF {item.name}")
+                            return {"nodes": [], "edges": []}
+                
+                if not pdf_text or len(pdf_text.strip()) < 10:
+                    logger.warning(f"No meaningful text extracted from PDF {item.name}")
+                    return {"nodes": [], "edges": []}
+                
+                # Level 1: Extract proteins mentioned in PDF
+                protein_graph = build_protein_graph_from_pdf(pdf_text, item.name)
+                if protein_graph and (protein_graph.get("nodes") or protein_graph.get("edges")):
+                    depth_2_graphs.append(protein_graph)
+                    tool_logger.log_tool_call("build_protein_graph_from_pdf", tool_input, protein_graph)
+                
+                # Level 1: Find similar PDFs based on content
+                pdf_graph = build_pdf_graph_from_pdf(pdf_text, item.name)
+                if pdf_graph and (pdf_graph.get("nodes") or pdf_graph.get("edges")):
+                    depth_2_graphs.append(pdf_graph)
+                    tool_logger.log_tool_call("build_pdf_graph_from_pdf", tool_input, pdf_graph)
+                
+                # Level 1: Find similar images based on content
+                image_graph = build_image_graph_from_pdf(pdf_text, item.name)
+                if image_graph and (image_graph.get("nodes") or image_graph.get("edges")):
+                    depth_2_graphs.append(image_graph)
+                    tool_logger.log_tool_call("build_image_graph_from_pdf", tool_input, image_graph)
+                
+                # Merge all depth-2 graphs for this PDF
+                if depth_2_graphs:
+                    tool_output = merge_graphs(depth_2_graphs)
+                else:
+                    tool_output = {"nodes": [], "edges": []}
+                
+                return tool_output
+            
+            # ===== Handle Image files =====
+            elif item.type.lower() == 'image':
+                if not item.content:
+                    logger.warning(f"Image item {item.name} has no content")
+                    return {"nodes": [], "edges": []}
+                
+                # For images, we need to save the base64 content temporarily or extract text
+                # For now, we'll try to parse the image and extract any text content
+                try:
+                    parsed_image = ContentParser.parse_image(item.content)
+                    image_text = parsed_image.get("text_content", "")
+                    
+                    # If we have text from OCR, use it to search for PDFs
+                    if image_text and len(image_text.strip()) > 10:
+                        # Use text content to search for related PDFs
+                        pdf_graph = build_pdf_graph_from_pdf(image_text, item.name)
+                        if pdf_graph and (pdf_graph.get("nodes") or pdf_graph.get("edges")):
+                            depth_2_graphs.append(pdf_graph)
+                            tool_logger.log_tool_call("build_pdf_graph_from_pdf (from image text)", tool_input, pdf_graph)
+                    else:
+                        # Fallback: use the image name/metadata as a text query
+                        search_text = f"{item.name} {item.description or ''}"
+                        pdf_graph = build_pdf_graph_from_pdf(search_text, item.name)
+                        if pdf_graph and (pdf_graph.get("nodes") or pdf_graph.get("edges")):
+                            depth_2_graphs.append(pdf_graph)
+                            tool_logger.log_tool_call("build_pdf_graph_from_pdf (from image name)", tool_input, pdf_graph)
+                        
+                except Exception as e:
+                    logger.error(f"Failed to process image {item.name}: {str(e)}")
+                
+                # Merge all depth-2 graphs for this image
+                if depth_2_graphs:
+                    tool_output = merge_graphs(depth_2_graphs)
+                else:
+                    tool_output = {"nodes": [], "edges": []}
+                
+                return tool_output
+            
+            # ===== Handle PDB/Structure files =====
+            elif item.type.lower() in ['pdb', 'structure', 'cif']:
                 if item.content and len(item.content.strip()) <= 10:
                     tool_output = build_protein_graph_from_query(item.content.strip())
                     if tool_output is None:
@@ -139,6 +246,8 @@ class MultiModalRetrievalAgent:
                         tool_output = {"nodes": [], "edges": []}
                     tool_logger.log_tool_call("build_protein_graph_from_cif", tool_input, tool_output)
                     return tool_output
+            
+            # ===== Handle Sequence/FASTA files =====
             elif item.type.lower() in ['sequence', 'fasta']:
                 if item.content:
                     tool_output = build_protein_graph_from_sequence(item.content)
@@ -147,6 +256,8 @@ class MultiModalRetrievalAgent:
                         tool_output = {"nodes": [], "edges": []}
                     tool_logger.log_tool_call("build_protein_graph_from_sequence", tool_input, tool_output)
                     return tool_output
+            
+            # ===== Handle generic text =====
             elif item.type.lower() == 'text':
                 if item.content:
                     content = item.content.strip()
@@ -164,6 +275,8 @@ class MultiModalRetrievalAgent:
                             tool_output = {"nodes": [], "edges": []}
                         tool_logger.log_tool_call("build_protein_graph_from_sequence", tool_input, tool_output)
                         return tool_output
+            
+            # ===== Fallback for short content =====
             if item.content and len(item.content.strip()) <= 10:
                 tool_output = build_protein_graph_from_query(item.content.strip())
                 if tool_output is None:
@@ -171,9 +284,11 @@ class MultiModalRetrievalAgent:
                     tool_output = {"nodes": [], "edges": []}
                 tool_logger.log_tool_call("build_protein_graph_from_query", tool_input, tool_output)
                 return tool_output
+            
             logger.warning(f"Could not process item {item.name} of type {item.type}")
             tool_logger.log_tool_call("unknown type", tool_input, {"nodes": [], "edges": []})
             return {"nodes": [], "edges": []}
+            
         except Exception as e:
             tool_logger.log_tool_call("tool_error", tool_input, f"Exception: {str(e)}")
             raise
@@ -273,16 +388,34 @@ class MultiModalRetrievalAgent:
         """Generate summary and notes using LLM."""
         try:
             # Prepare context for LLM
+            # Handle both dict and object formats for nodes/edges
+            nodes = graph_data.get("nodes", [])
+            edges = graph_data.get("edges", [])
+            
+            # Extract node types (handle both dict and object)
+            node_types = []
+            for node in nodes:
+                node_type = node.get("type") if isinstance(node, dict) else getattr(node, "type", None)
+                if node_type:
+                    node_types.append(node_type)
+            
+            # Extract edge types (handle both dict and object)
+            edge_types = []
+            for edge in edges:
+                edge_type = edge.get("type") if isinstance(edge, dict) else getattr(edge, "type", None)
+                if edge_type:
+                    edge_types.append(edge_type)
+            
             context = {
                 "objective": request.mainObjective,
                 "secondary_objectives": request.secondaryObjectives,
                 "constraints": request.constraints,
                 "user_notes": request.notes,
                 "processing_stats": stats,
-                "node_count": len(graph_data.get("nodes", [])),
-                "edge_count": len(graph_data.get("edges", [])),
-                "node_types": list(set(node.type for node in graph_data.get("nodes", []))),
-                "edge_types": list(set(edge.type for edge in graph_data.get("edges", [])))
+                "node_count": len(nodes),
+                "edge_count": len(edges),
+                "node_types": list(set(node_types)),
+                "edge_types": list(set(edge_types))
             }
             
             prompt = f"""

@@ -113,7 +113,7 @@ class GraphData(BaseModel):
 
 class GraphAnalysisResponse(BaseModel):
     """Response model for graph analysis."""
-    graph: GraphData
+    graph: Union[GraphData, Dict[str, Any]]  # Support both GraphData and raw dict
     summary: str
     processing_stats: Dict[str, Any] = {}
     notes: List[str] = []
