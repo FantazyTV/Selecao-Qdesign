@@ -8,7 +8,7 @@ Qdesign is a workspace for scientist where they can **create** "projects" (like 
 
 ## Video URL:
 
-
+https://youtu.be/1vimfGWMWEE
 
 ## Live URL (no LLM and retrieval endpoints included because of free tier limitations):
 
@@ -16,6 +16,8 @@ https://qdesign.moetezfradi.me
 
 you can use these credentials: **123@gmail.com** password: **123456** to login and see the project shown in the video demo.
 See the data pool content, the knowledge graph and the elements of it (yes, with visualisation for most nodes !)
+
+You can also create your own account and join a project with this code: **WKYQ35**
 
 ---
 ## Team Members
@@ -46,8 +48,16 @@ See the data pool content, the knowledge graph and the elements of it (yes, with
 
 Qdesing is  **Vector-Native:** Biological similarity (shape, function, sequence) is the core logic driver, and **Explainable:** Every retrieval and suggestion provides an evidence trail (papers, similar experiments).
 
-**Full demo video link:**
+## Technologies Used 
 
+- Python 3.11.8
+- Nextjs 16.1
+- Fastapi 0.128.0
+- Qdrant (forked version, see XQdrant submodule)
+- Nestjs 11.0.1
+- MongoDB
+- Streamlit
+- Rust 1.91.1
 
 ## System Architecture (High-Level)
 
