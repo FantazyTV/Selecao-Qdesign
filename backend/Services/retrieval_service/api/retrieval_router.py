@@ -8,57 +8,37 @@ from typing import Dict, Any
 import logging
 from datetime import datetime
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import json
 
 from utils.models import ProcessingRequest, GraphAnalysisResponse
-from agent.agent import MultiModalRetrievalAgent
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/retrieval", tags=["retrieval"])
 
-# Thread pool for CPU-intensive operations
-executor = ThreadPoolExecutor(max_workers=2)
-
 # In-memory job storage (use Redis or database in production)
 job_results: Dict[str, Dict[str, Any]] = {}
 
 
-def _process_data_pool_sync(request: ProcessingRequest) -> GraphAnalysisResponse:
-    """Synchronous processing function for thread pool execution."""
-    agent = MultiModalRetrievalAgent()
-    return agent.process_data_pool_request(request)
-
-
 async def _process_data_pool_background(job_id: str, request: ProcessingRequest):
-    """Background task for processing data pool."""
+    """Background task that immediately returns test data."""
     try:
         job_results[job_id] = {
             "status": "processing", 
             "started_at": datetime.now().isoformat()
         }
         
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(executor, _process_data_pool_sync, request)
+        # Wait 10 seconds for testing
+        await asyncio.sleep(10)
         
-        # Save input and response to JSON file with timestamp
-        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f'retrieval_response_{ts}.json'
-        try:
-            payload = {
-                "input": request.dict() if hasattr(request, 'dict') else request,
-                "response": result.dict() if hasattr(result, 'dict') else result
-            }
-            with open(filename, 'w', encoding='utf-8') as f:
-                json.dump(payload, f, indent=2, default=str)
-            print(f"[DEBUG] Saved input and response to {filename}")
-        except Exception as e:
-            print(f"[ERROR] Could not save input/response to {filename}: {str(e)}")
+        # Load the test JSON file
+        with open('retrieval_response_20260130_025858.json', 'r', encoding='utf-8') as f:
+            test_data = json.load(f)
         
+        # Set job as completed with test response
         job_results[job_id] = {
             "status": "completed",
-            "result": result.dict(),
+            "result": test_data["response"],
             "completed_at": datetime.now().isoformat()
         }
         
@@ -97,7 +77,7 @@ async def process_data_pool(request: ProcessingRequest, background_tasks: Backgr
             "jobId": job_id,
             "status": "processing",
             "message": "Data pool analysis started. Use /status endpoint to check progress.",
-            "estimatedCompletion": "2-5 minutes"
+            "estimatedCompletion": "10 seconds"
         }
 
     except HTTPException:

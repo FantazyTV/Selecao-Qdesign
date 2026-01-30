@@ -18,7 +18,7 @@ dotenv.load_dotenv()
 # Import routers
 from api.retrieval_router import router as retrieval_router
 from api.protein_graph_router import router as protein_graph_router
-# from api.extension_router import router as extension_router
+from api.expand_router import router as expand_router
 
 # Configure logging
 logging.basicConfig(
@@ -79,7 +79,7 @@ app.add_middleware(
 # Include routers
 app.include_router(retrieval_router)
 app.include_router(protein_graph_router)
-# app.include_router(extension_router)
+app.include_router(expand_router)
 
 # Root endpoint
 @app.get("/")
