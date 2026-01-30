@@ -58,6 +58,17 @@ You can also create your own account and join a project with this code: **WKYQ35
 *Multimodel Knowledge Graph, with expalanation edges and nodes for pdfs, images, structures and sequences*
 
 
+#### AI Co-Scientist
+![Co-Scientist Interface](Screenshots/coscientist.png)
+*AI Co-Scientist interface when first opening the workspace*
+
+![Co-Scientist Generation](Screenshots/coscientist-1.png)
+*Example of AI-powered generation with evidence-based suggestions*
+
+![Co-Scientist Human in the Loop](Screenshots/coscientist-2.png)
+*Human-in-the-loop interaction during the generation process*
+
+
 Qdesing is  **Vector-Native:** Biological similarity (shape, function, sequence) is the core logic driver, and **Explainable:** Every retrieval and suggestion provides an evidence trail (papers, similar experiments).
 
 ## Technologies
