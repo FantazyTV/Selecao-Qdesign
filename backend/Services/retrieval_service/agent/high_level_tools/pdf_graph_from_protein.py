@@ -4,7 +4,7 @@ from agent.tools.embedder import text_embed
 from agent.tools.vector_search import retrieve_similar_pdfs
 from agent.tools.web_search import resolve_protein_name
 from agent.tools.qdrant_retrieval import get_cif_by_pdb_id, get_fasta_by_uniprot_id
-from agent.high_level_tools.protein_graph_from_query import extract_sequence_from_cif, safe_embed
+from agent.high_level_tools.protein_graph_from_query import extract_sequence_from_cif, normalize_graph, safe_embed
 from graph.graph_objects import Graph, Node, Edge
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s")
@@ -144,7 +144,7 @@ def build_pdf_graph_from_protein(protein_input: str, input_type: str = "auto"):
         graph.add_edge(edge)
     
     log.info(f"Built graph with {len(graph.nodes)} nodes and {len(graph.edges)} edges")
-    return graph.as_json()
+    return normalize_graph(graph.as_json())
 
 
 if __name__ == "__main__":

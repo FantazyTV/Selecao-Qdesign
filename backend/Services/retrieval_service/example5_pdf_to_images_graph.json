@@ -4,117 +4,20 @@
       "id": "structure_paper.pdf",
       "type": "pdf",
       "label": "structure_paper.pdf",
-      "embedding": null,
+      "description": null,
+      "content": null,
+      "fileUrl": null,
+      "position": {
+        "x": 97.9,
+        "y": 41.8
+      },
+      "trustLevel": "high",
+      "notes": [],
       "metadata": {
         "content_preview": "\n    Protein crystal structure visualization shows alpha helices in red \n    and beta sheets in yellow. The 3D molecular structure reveals the \n    active site pocket with bound ligand. Electron densi"
-      }
-    },
-    {
-      "id": "Protein_structure.png",
-      "type": "image",
-      "label": "Protein_structure.png",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\images\\diagrams\\Protein_structure.png",
-        "source": "qdrant_images"
-      }
-    },
-    {
-      "id": "Protein_Structure_of_human_NDNF.png",
-      "type": "image",
-      "label": "Protein_Structure_of_human_NDNF.png",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\images\\diagrams\\Protein_Structure_of_human_NDNF.png",
-        "source": "qdrant_images"
-      }
-    },
-    {
-      "id": "RIOX1_Human_Protein_Structure.png",
-      "type": "image",
-      "label": "RIOX1_Human_Protein_Structure.png",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\images\\diagrams\\RIOX1_Human_Protein_Structure.png",
-        "source": "qdrant_images"
-      }
-    },
-    {
-      "id": "1lyz_structure.png",
-      "type": "image",
-      "label": "1lyz_structure.png",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\images\\diagrams\\1lyz_structure.png",
-        "source": "qdrant_images"
-      }
-    },
-    {
-      "id": "ALDP_Protein_structure.png",
-      "type": "image",
-      "label": "ALDP_Protein_structure.png",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\images\\diagrams\\ALDP_Protein_structure.png",
-        "source": "qdrant_images"
-      }
+      },
+      "groupId": "pdf"
     }
   ],
-  "edges": [
-    {
-      "from_id": "structure_paper.pdf",
-      "to_id": "Protein_structure.png",
-      "type": "related_to",
-      "score": 0.3296431,
-      "evidence": "CLIP similarity score: 0.330",
-      "provenance": {
-        "search_type": "clip_similarity",
-        "collection": "images"
-      }
-    },
-    {
-      "from_id": "structure_paper.pdf",
-      "to_id": "Protein_Structure_of_human_NDNF.png",
-      "type": "related_to",
-      "score": 0.3188565,
-      "evidence": "CLIP similarity score: 0.319",
-      "provenance": {
-        "search_type": "clip_similarity",
-        "collection": "images"
-      }
-    },
-    {
-      "from_id": "structure_paper.pdf",
-      "to_id": "RIOX1_Human_Protein_Structure.png",
-      "type": "related_to",
-      "score": 0.30989906,
-      "evidence": "CLIP similarity score: 0.310",
-      "provenance": {
-        "search_type": "clip_similarity",
-        "collection": "images"
-      }
-    },
-    {
-      "from_id": "structure_paper.pdf",
-      "to_id": "1lyz_structure.png",
-      "type": "related_to",
-      "score": 0.30709517,
-      "evidence": "CLIP similarity score: 0.307",
-      "provenance": {
-        "search_type": "clip_similarity",
-        "collection": "images"
-      }
-    },
-    {
-      "from_id": "structure_paper.pdf",
-      "to_id": "ALDP_Protein_structure.png",
-      "type": "related_to",
-      "score": 0.30585563,
-      "evidence": "CLIP similarity score: 0.306",
-      "provenance": {
-        "search_type": "clip_similarity",
-        "collection": "images"
-      }
-    }
-  ]
+  "edges": []
 }

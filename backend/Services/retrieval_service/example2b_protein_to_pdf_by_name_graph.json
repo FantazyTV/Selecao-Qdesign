@@ -4,123 +4,21 @@
       "id": "1BOM",
       "type": "pdb",
       "label": "1BOM",
-      "embedding": null,
+      "description": null,
+      "content": null,
+      "fileUrl": null,
+      "position": {
+        "x": 83.9,
+        "y": 26.8
+      },
+      "trustLevel": "high",
+      "notes": [],
       "metadata": {
         "protein_id": "1BOM",
         "search_query": "1BOM"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0207236v1.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0207236v1.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0207236v1.pdf",
-        "source": "qdrant_pdfs"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0307006v1.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0307006v1.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0307006v1.pdf",
-        "source": "qdrant_pdfs"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0202076v2.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0202076v2.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0202076v2.pdf",
-        "source": "qdrant_pdfs"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0210183v2.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0210183v2.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0210183v2.pdf",
-        "source": "qdrant_pdfs"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0207311v1.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0207311v1.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0207311v1.pdf",
-        "source": "qdrant_pdfs"
-      }
+      },
+      "groupId": "pdb"
     }
   ],
-  "edges": [
-    {
-      "from_id": "1BOM",
-      "to_id": "arxiv_cond-mat_0207236v1.pdf",
-      "type": "related_to",
-      "score": 0.13501923,
-      "evidence": "Text similarity score: 0.135",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "1BOM"
-      }
-    },
-    {
-      "from_id": "1BOM",
-      "to_id": "arxiv_cond-mat_0307006v1.pdf",
-      "type": "related_to",
-      "score": 0.1171473,
-      "evidence": "Text similarity score: 0.117",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "1BOM"
-      }
-    },
-    {
-      "from_id": "1BOM",
-      "to_id": "arxiv_cond-mat_0202076v2.pdf",
-      "type": "related_to",
-      "score": 0.11355714,
-      "evidence": "Text similarity score: 0.114",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "1BOM"
-      }
-    },
-    {
-      "from_id": "1BOM",
-      "to_id": "arxiv_cond-mat_0210183v2.pdf",
-      "type": "related_to",
-      "score": 0.111672804,
-      "evidence": "Text similarity score: 0.112",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "1BOM"
-      }
-    },
-    {
-      "from_id": "1BOM",
-      "to_id": "arxiv_cond-mat_0207311v1.pdf",
-      "type": "related_to",
-      "score": 0.11097565,
-      "evidence": "Text similarity score: 0.111",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "1BOM"
-      }
-    }
-  ]
+  "edges": []
 }

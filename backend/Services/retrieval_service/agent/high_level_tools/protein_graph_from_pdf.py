@@ -4,6 +4,7 @@ import json
 from typing import List, Dict
 from dotenv import load_dotenv
 from openai import OpenAI
+from agent.high_level_tools.protein_graph_from_query import normalize_graph
 from agent.tools.web_search import resolve_protein_name
 from agent.tools.qdrant_retrieval import get_cif_by_pdb_id, get_fasta_by_uniprot_id
 from graph.graph_objects import Graph, Node, Edge
@@ -220,7 +221,7 @@ def build_protein_graph_from_pdf(pdf_text: str, pdf_name: str = "input_pdf"):
             continue
     
     log.info(f"Built graph with {len(graph.nodes)} nodes and {len(graph.edges)} edges")
-    return graph.as_json()
+    return normalize_graph(graph.as_json())
 
 
 if __name__ == "__main__":

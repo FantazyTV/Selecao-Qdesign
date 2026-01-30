@@ -4,123 +4,21 @@
       "id": "4HHB",
       "type": "pdb",
       "label": "4HHB",
-      "embedding": null,
+      "description": null,
+      "content": null,
+      "fileUrl": null,
+      "position": {
+        "x": 85.5,
+        "y": 40.8
+      },
+      "trustLevel": "high",
+      "notes": [],
       "metadata": {
         "protein_id": "4HHB",
         "search_query": "4HHB"
-      }
-    },
-    {
-      "id": "arxiv_physics_0306065v2.pdf",
-      "type": "pdf",
-      "label": "arxiv_physics_0306065v2.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_physics_0306065v2.pdf",
-        "source": "qdrant_pdfs"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0302545v2.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0302545v2.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0302545v2.pdf",
-        "source": "qdrant_pdfs"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0201271v1.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0201271v1.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0201271v1.pdf",
-        "source": "qdrant_pdfs"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0301582v1.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0301582v1.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0301582v1.pdf",
-        "source": "qdrant_pdfs"
-      }
-    },
-    {
-      "id": "arxiv_cond-mat_0211347v1.pdf",
-      "type": "pdf",
-      "label": "arxiv_cond-mat_0211347v1.pdf",
-      "embedding": null,
-      "metadata": {
-        "path": "C:\\Users\\Moetez\\Desktop\\Vectors in Orbit\\_Ndhif\\Data\\text\\papers\\arxiv_cond-mat_0211347v1.pdf",
-        "source": "qdrant_pdfs"
-      }
+      },
+      "groupId": "pdb"
     }
   ],
-  "edges": [
-    {
-      "from_id": "4HHB",
-      "to_id": "arxiv_physics_0306065v2.pdf",
-      "type": "related_to",
-      "score": 0.08087137,
-      "evidence": "Text similarity score: 0.081",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "4HHB"
-      }
-    },
-    {
-      "from_id": "4HHB",
-      "to_id": "arxiv_cond-mat_0302545v2.pdf",
-      "type": "related_to",
-      "score": 0.08008361,
-      "evidence": "Text similarity score: 0.080",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "4HHB"
-      }
-    },
-    {
-      "from_id": "4HHB",
-      "to_id": "arxiv_cond-mat_0201271v1.pdf",
-      "type": "related_to",
-      "score": 0.0690577,
-      "evidence": "Text similarity score: 0.069",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "4HHB"
-      }
-    },
-    {
-      "from_id": "4HHB",
-      "to_id": "arxiv_cond-mat_0301582v1.pdf",
-      "type": "related_to",
-      "score": 0.051935855,
-      "evidence": "Text similarity score: 0.052",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "4HHB"
-      }
-    },
-    {
-      "from_id": "4HHB",
-      "to_id": "arxiv_cond-mat_0211347v1.pdf",
-      "type": "related_to",
-      "score": 0.048496075,
-      "evidence": "Text similarity score: 0.048",
-      "provenance": {
-        "search_type": "text_similarity",
-        "collection": "pdfs",
-        "query": "4HHB"
-      }
-    }
-  ]
+  "edges": []
 }

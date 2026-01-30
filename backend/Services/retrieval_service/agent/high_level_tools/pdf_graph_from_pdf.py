@@ -35,7 +35,7 @@ def build_pdf_graph_from_pdf(pdf_content: str, pdf_name: str = "input_pdf"):
         id=pdf_name,
         type="pdf",
         label=pdf_name,
-        metadata={"content_preview": pdf_content[:200] if pdf_content else ""}
+        metadata={"path": pdf_name if pdf_name else ""}
     )
     graph.add_node(central_node)
     

@@ -4,6 +4,7 @@ from pathlib import Path
 from PIL import Image
 import torch
 import clip
+from agent.high_level_tools.protein_graph_from_query import normalize_graph
 from agent.tools.embedder import text_embed
 from agent.tools.vector_search import retrieve_similar_pdfs
 from graph.graph_objects import Graph, Node, Edge
@@ -130,7 +131,7 @@ def build_pdf_graph_from_image(image_input: str, image_name: str = "input_image"
         graph.add_edge(edge)
     
     log.info(f"Built graph with {len(graph.nodes)} nodes and {len(graph.edges)} edges")
-    return graph.as_json()
+    return normalize_graph(graph.as_json())
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import os
 import logging
+from agent.high_level_tools.protein_graph_from_query import normalize_graph
 from agent.tools.embedder import clip_embed
 from agent.tools.vector_search import retrieve_similar_images
 from graph.graph_objects import Graph, Node, Edge
@@ -81,7 +82,7 @@ def build_image_graph_from_pdf(pdf_content: str, pdf_name: str = "input_pdf"):
         graph.add_edge(edge)
     
     log.info(f"Built graph with {len(graph.nodes)} nodes and {len(graph.edges)} edges")
-    return graph.as_json()
+    return normalize_graph(graph.as_json())
 
 
 if __name__ == "__main__":

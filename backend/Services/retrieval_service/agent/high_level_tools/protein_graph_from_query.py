@@ -77,6 +77,9 @@ def normalize_graph(graph_json):
         # If it's PDB, store fileUrl from cif_path
         if node_type == "pdb" and metadata.get("cif_path"):
             file_url = metadata["cif_path"]
+        
+        if node_type == "pdf":
+            file_url = metadata.get("path", file_url)
 
         trust = "high"
         if metadata.get("source") == "web":
