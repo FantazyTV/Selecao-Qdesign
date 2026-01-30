@@ -1,3 +1,3 @@
 export { DataPool } from "./DataPool";
 export { KnowledgeGraphView } from "./KnowledgeGraph";
-export { CoScientistSidebar } from "./CoScientistSidebar";
+export { CoScientistPanel as CoScientistSidebar } from "./CoScientistSidebar";
