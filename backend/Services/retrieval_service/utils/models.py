@@ -54,13 +54,14 @@ class ProcessingRequest(BaseModel):
 
 class NodeType(str, Enum):
     """Graph node types."""
-    PROTEIN = "protein"
-    DOCUMENT = "document"
+    PROTEIN = "pdb"
+    DOCUMENT = "pdf"
     IMAGE = "image"
     SEQUENCE = "sequence"
     STRUCTURE = "structure"
     OBJECTIVE = "objective"
     CONCEPT = "concept"
+    ANNOTATION = "annotation"
     RELATIONSHIP = "relationship"
 
 class EdgeType(str, Enum):
@@ -74,24 +75,35 @@ class EdgeType(str, Enum):
     DERIVES_FROM = "derives_from"
     MENTIONS = "mentions"
 
-class GraphNode(BaseModel):
-    """Enhanced node model for API responses."""
-    id: str
-    type: NodeType
-    label: str
-    embedding: Optional[List[float]] = None
-    metadata: Dict[str, Any] = {}
-    content_summary: Optional[str] = None
-    relevance_score: Optional[float] = None
 
+# Updated GraphNode to match the provided TypeScript schema
+class GraphNode(BaseModel):
+    """Node model for API responses, matching frontend schema."""
+    id: str
+    type: str  # enum: ['pdb', 'pdf', 'image', 'sequence', 'text', 'annotation']
+    label: str
+    description: Optional[str] = None
+    content: Optional[str] = None
+    fileUrl: Optional[str] = None
+    largeFileId: Optional[str] = None
+    position: Optional[Dict[str, float]] = None  # {x: number, y: number}
+    trustLevel: Optional[str] = 'high'  # enum: ['high', 'medium', 'low', 'untrusted']
+    notes: Optional[list] = []  # Should be List[GraphNodeNote], but not defined here
+    metadata: Optional[Dict[str, Any]] = None
+    groupId: Optional[str] = None
+
+
+# Updated GraphEdge to match the provided TypeScript schema
 class GraphEdge(BaseModel):
-    """Enhanced edge model for API responses."""
-    from_id: str
-    to_id: str
-    type: EdgeType
-    score: Optional[float] = None
-    evidence: Optional[str] = None
-    provenance: Dict[str, Any] = {}
+    """Edge model for API responses, matching frontend schema."""
+    id: str
+    source: str
+    target: str
+    label: Optional[str] = None
+    correlationType: str  # enum: ['similar', 'cites', 'contradicts', 'supports', 'derived', 'custom']
+    strength: Optional[float] = None  # min: 0, max: 1
+    explanation: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 class GraphData(BaseModel):
     """Complete graph representation."""
@@ -101,7 +113,7 @@ class GraphData(BaseModel):
 
 class GraphAnalysisResponse(BaseModel):
     """Response model for graph analysis."""
-    graphs: List[GraphData]
+    graph: GraphData
     summary: str
     processing_stats: Dict[str, Any] = {}
     notes: List[str] = []

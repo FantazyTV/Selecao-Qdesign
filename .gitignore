@@ -33,3 +33,8 @@ fastas
 retrieve_payloads
 
 ai_analysis_payloads
+*.pdf
+images/
+text/
+sequences/
+structures/

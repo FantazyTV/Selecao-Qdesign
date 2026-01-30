@@ -203,7 +203,7 @@ def safe_embed(sequence: str):
         raise RuntimeError("Embedding contains NaN/Inf")
     return arr.tolist()
 
-def build_protein_graph(query: str):
+def build_protein_graph_from_query(query: str):
     log.info("Query: %s", query)
     resolved = resolve_protein_name(query)
     log.info("Resolved: %s", resolved)
@@ -352,7 +352,7 @@ def build_protein_graph(query: str):
 if __name__ == "__main__":
     import sys, json
     query = sys.argv[1] if len(sys.argv) > 1 else "1eza"
-    graph_json = build_protein_graph(query)
+    graph_json = build_protein_graph_from_query(query)
 
     # Save to file
     with open("graph_output.json", "w", encoding="utf-8") as f:

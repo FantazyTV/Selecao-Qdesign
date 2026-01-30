@@ -88,6 +88,80 @@ def retrieve_similar_cif(seed_vector, n=10, feature_mask=None):
 def retrieve_similar_fasta(seed_vector, n=10, feature_mask=None):
     return _search_qdrant("uniprot_sequences", seed_vector, n, feature_mask)
 
+def retrieve_similar_pdfs(seed_vector, n=10):
+    """Search the pdfs collection for similar PDFs."""
+    vector = seed_vector if isinstance(seed_vector, list) else seed_vector.tolist()
+    payload = {
+        "vector": vector,
+        "limit": n,
+        "with_payload": True,
+        "with_vector": False
+    }
+    resp = requests.post(f"{QDRANT_URL}/collections/pdfs/points/search", json=payload)
+    resp.raise_for_status()
+    results = resp.json().get("result", [])
+    out = []
+    for r in results:
+        r_payload = r.get("payload") or {}
+        path = r_payload.get("path", "")
+        # Extract filename from path for node_id
+        import os
+        filename = os.path.basename(path) if path else str(r.get("id"))
+        out.append({
+            "node_id": filename,
+            "score": r.get("score"),
+            "payload": r_payload
+        })
+    return out
+
+def retrieve_similar_text_chunks(seed_vector, n=10):
+    """Search the qdesign_text collection for similar text chunks."""
+    vector = seed_vector if isinstance(seed_vector, list) else seed_vector.tolist()
+    payload = {
+        "vector": vector,
+        "limit": n,
+        "with_payload": True,
+        "with_vector": False
+    }
+    resp = requests.post(f"{QDRANT_URL}/collections/qdesign_text/points/search", json=payload)
+    resp.raise_for_status()
+    results = resp.json().get("result", [])
+    out = []
+    for r in results:
+        r_payload = r.get("payload") or {}
+        out.append({
+            "node_id": r_payload.get("pdf_id") or r_payload.get("file_name") or str(r.get("id")),
+            "score": r.get("score"),
+            "payload": r_payload
+        })
+    return out
+
+def retrieve_similar_images(seed_vector, n=10):
+    """Search the images collection for similar images using CLIP embeddings."""
+    vector = seed_vector if isinstance(seed_vector, list) else seed_vector.tolist()
+    payload = {
+        "vector": vector,
+        "limit": n,
+        "with_payload": True,
+        "with_vector": False
+    }
+    resp = requests.post(f"{QDRANT_URL}/collections/images/points/search", json=payload)
+    resp.raise_for_status()
+    results = resp.json().get("result", [])
+    out = []
+    for r in results:
+        r_payload = r.get("payload") or {}
+        path = r_payload.get("path", "")
+        # Extract filename from path for node_id
+        import os
+        filename = os.path.basename(path) if path else str(r.get("id"))
+        out.append({
+            "node_id": filename,
+            "score": r.get("score"),
+            "payload": r_payload
+        })
+    return out
+
 
 if __name__ == "__main__":
     # Example usage

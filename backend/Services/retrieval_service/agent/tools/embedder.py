@@ -16,6 +16,15 @@ def _load_esm2():
         _esm2_model.eval()
     return _esm2_model, _esm2_batch_converter
 
+# Load sentence-transformers model once
+_text_model = None
+def _load_text_model():
+    global _text_model
+    if _text_model is None:
+        from sentence_transformers import SentenceTransformer
+        _text_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    return _text_model
+
 def esm2_embed(sequence: str) -> List[float]:
     """
     Embed a protein sequence using ESM2.
@@ -28,6 +37,31 @@ def esm2_embed(sequence: str) -> List[float]:
     token_representations = results["representations"][33]
     embedding = token_representations[0, 1:len(sequence)+1].mean(0).cpu().numpy()
     return embedding.tolist()
+
+def text_embed(text: str) -> List[float]:
+    """
+    Embed text using sentence-transformers all-MiniLM-L6-v2.
+    Returns an embedding as a list of floats.
+    """
+    model = _load_text_model()
+    embedding = model.encode(text, convert_to_numpy=True)
+    return embedding.tolist()
+
+def clip_embed(text: str) -> List[float]:
+    """
+    Embed text using CLIP model (ViT-B/32).
+    Returns a 512-dimensional embedding as a list of floats.
+    """
+    import clip
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model, _ = clip.load("ViT-B/32", device=device)
+    
+    text_tokens = clip.tokenize([text]).to(device)
+    with torch.no_grad():
+        text_features = model.encode_text(text_tokens)
+        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+    
+    return text_features.cpu().numpy().flatten().tolist()
 
 def embed_if_missing(node: Node, embedder: Callable[[str], List[float]] = None) -> List[float]:
     """
