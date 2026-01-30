@@ -104,6 +104,7 @@ Qdesing is  **Vector-Native:** Biological similarity (shape, function, sequence)
 |------------|---------|---------|
 | FastAPI | 0.109.0+ | REST API framework |
 | Python | 3.10+ | Runtime |
+| Streamlit | 1.53.1 | Interactive web application |
 | Uvicorn | 0.27.0+ | ASGI server |
 | Pydantic | 2.0.0+ | Data validation |
 | LangChain | Latest | LLM orchestration |
