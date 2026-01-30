@@ -461,7 +461,7 @@ POSTGRES_DSN=postgresql://user:pass@localhost:5432/qdesign
 QDRANT_URL=http://localhost:6333
 OPENAI_API_KEY=your-key  # For Co-Scientist
 ```
-## 💡 Usage Examples
+## Usage Examples
 
 ### Example 1: Creating a Project and Uploading Data
 
