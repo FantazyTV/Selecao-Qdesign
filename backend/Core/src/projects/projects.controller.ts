@@ -191,6 +191,30 @@ export class ProjectsController {
     const node = project.knowledgeGraph.nodes.find((n: any) => n.id === nodeId);
     return { content: node?.content || "" };
   }
+
+  // --- Fetch and cache PDF content for a node ---
+  @Post(':id/knowledge-graph/nodes/:nodeId/fetch-pdf-content')
+  async fetchPdfContent(
+    @Param('id') id: string,
+    @Param('nodeId') nodeId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const project = await this.projectsService.fetchAndCachePdfContent(id, nodeId, user.userId);
+    const node = project.knowledgeGraph.nodes.find((n: any) => n.id === nodeId);
+    return { content: node?.content || "" };
+  }
+
+  // --- Fetch and cache Image content for a node ---
+  @Post(':id/knowledge-graph/nodes/:nodeId/fetch-image-content')
+  async fetchImageContent(
+    @Param('id') id: string,
+    @Param('nodeId') nodeId: string,
+    @CurrentUser() user: CurrentUserData,
+  ) {
+    const project = await this.projectsService.fetchAndCacheImageContent(id, nodeId, user.userId);
+    const node = project.knowledgeGraph.nodes.find((n: any) => n.id === nodeId);
+    return { content: node?.content || "" };
+  }
     // --- AI Co-Scientist Analysis Endpoint ---
   @Post(':id/ai-analysis')
   async aiAnalysis(

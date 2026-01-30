@@ -1,3 +1,4 @@
+
 import { Connection } from 'mongoose';
 // Helper: get or create a GridFS bucket for large files
 async function getGridFSBucket(mongooseConnection: any) {
@@ -108,6 +109,7 @@ export class ProjectsService {
     if (!project) throw new NotFoundException('Project not found');
 
     const hasAccess = project.members.some(m => {
+      if (!m.user) return false; // Skip null users (deleted users)
       // Handle both populated and unpopulated user references
       const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
       return memberUserId === userId;
@@ -370,8 +372,7 @@ export class ProjectsService {
     if (!baseUrl) throw new Error('RETRIEVE_API_URL not set in .env');
     const processUrl = baseUrl.replace(/\/?$/, '/') + 'retrieval/process';
 
-    console.log(processUrl);
-
+    console.log(outputPayload);
     let response;
     try {
       response = await axios.post(processUrl, outputPayload, { timeout: 20000 });
@@ -562,5 +563,103 @@ export class ProjectsService {
     // const apiUrl = process.env.AI_ANALYSIS_API_URL;
     // await axios.post(apiUrl, outputPayload);
   }
+    // --- Fetch and cache PDF content for a node ---
+  async fetchAndCachePdfContent(projectId: string, nodeId: string, userId: string): Promise<ProjectDocument> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) throw new NotFoundException('Project not found');
+    const member = project.members.find(m => {
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
+    if (!member) throw new ForbiddenException('Access denied');
+    const node = project.knowledgeGraph.nodes.find((n: GraphNode) => n.id === nodeId);
+    if (!node) throw new NotFoundException('Node not found');
+    // If node.content is empty, try to load from file
+    if (!node.content && node.fileUrl) {
+      try {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const filePath = path.resolve(node.fileUrl);
+        const dataBuffer = await fs.readFile(filePath);
+        // Return base64 encoded PDF data
+        node.content = `data:application/pdf;base64,${dataBuffer.toString('base64')}`;
+      } catch (err) {
+        node.content = 'Failed to load PDF content.';
+      }
+      await project.save();
+    }
+    return this.findById(projectId, userId);
+  }
 
-}
+  // --- Fetch and cache Image content for a node ---
+  async fetchAndCacheImageContent(projectId: string, nodeId: string, userId: string): Promise<ProjectDocument> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) throw new NotFoundException('Project not found');
+    const member = project.members.find(m => {
+      const memberUserId = m.user._id ? m.user._id.toString() : m.user.toString();
+      return memberUserId === userId;
+    });
+    if (!member) throw new ForbiddenException('Access denied');
+    const node = project.knowledgeGraph.nodes.find((n: GraphNode) => n.id === nodeId);
+    if (!node) throw new NotFoundException('Node not found');
+    // If node.content is empty, try to load from file
+    if (!node.content && node.fileUrl) {
+      try {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const filePath = path.resolve(node.fileUrl);
+        const imageBuffer = await fs.readFile(filePath);
+        const ext = path.extname(filePath).replace('.', '').toLowerCase();
+        const mimeType = ext === 'jpg' ? 'jpeg' : ext;
+        node.content = `data:image/${mimeType};base64,${imageBuffer.toString('base64')}`;
+      } catch (err) {
+        node.content = 'Failed to load image content.';
+      }
+      await project.save();
+    }
+    return this.findById(projectId, userId);
+  }
+
+    async expandNode(projectId: string, payload: any): Promise<void> {
+        // Log the received request (including prompt)
+        console.log('[EXPAND SERVICE]', { projectId, payload });
+        // Use the expand service, expect the whole updated knowledge graph in return
+        const axios = (await import('axios')).default;
+        // The expand service URL (adjust if needed)
+        // New route: /api/v1/expand/process
+        const EXPAND_API_URL = process.env.EXPAND_API_URL || 'http://localhost:8000/api/v1/expand/process';
+        // Send expand request with node
+        const node = payload.node;
+        if (!node) throw new Error('Node is required for expand');
+        // 1. Send expand request
+        const { data: startResp } = await axios.post(EXPAND_API_URL, { node });
+        const jobId = startResp.jobId;
+        if (!jobId) throw new Error('Expand jobId missing');
+        // 2. Poll for result
+        const STATUS_URL = (process.env.EXPAND_API_URL || 'http://localhost:8000/api/v1/expand').replace(/\/process$/, '') + `/status/${jobId}`;
+        const RESULT_URL = (process.env.EXPAND_API_URL || 'http://localhost:8000/api/v1/expand').replace(/\/process$/, '') + `/result/${jobId}`;
+        let status = 'processing';
+        let tries = 0;
+        let result: any = null;
+        while (status === 'processing' && tries < 20) {
+          await new Promise(res => setTimeout(res, 1000));
+          const { data: statusResp } = await axios.get(STATUS_URL);
+          status = statusResp.status;
+          if (status === 'completed') {
+            const { data: resData } = await axios.get(RESULT_URL);
+            result = resData as any;
+            break;
+          } else if (status === 'failed') {
+            throw new Error('Expand job failed: ' + statusResp.error);
+          }
+          tries++;
+        }
+        if (!result) throw new Error('Expand did not complete');
+        // 3. Replace the knowledge graph with the returned one
+        const project = await this.projectModel.findById(projectId).exec();
+        if (!project) throw new Error('Project not found');
+        if (!result || typeof result !== 'object' || !('knowledgeGraph' in result)) throw new Error('Expand result missing knowledgeGraph');
+        project.knowledgeGraph = (result as any).knowledgeGraph;
+        await project.save();
+    }
+  }
