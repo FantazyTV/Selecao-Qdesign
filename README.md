@@ -4,7 +4,7 @@
 
 ## The solution in short:
 
-Qdesign is a workspace for scientist where they can **create** "projects" (like rooms), specify the project's objectives, constraints and notes and **upload** their own files (pdfs, cif, safta, images and text), annotate and comment them and visualize them before **creating a tailored knowledge graph** for their project. Then they can expand the knowledge graph from the search engine, comment data points and mark them as high trust or not.. and finally run a coscientist that takes all the data of the workspace and tries to reach the objective without violating constraints. the response of the scientist is in chunks, and each chunk is commentable (explain this further, don't use this paper...) so the co scientist can built up a new response based on that. we also feature git like history for each secondary objective of the project and cover exporting research into pdf format in the template of IEEE research papers.
+Qdesign is a workspace for scientist where they can **create** "projects" (like rooms), specify the project's objectives, constraints and notes and **upload** their own files (pdfs, cif, safta, images and text), annotate and comment them and visualize them before **creating a tailored knowledge graph** for their project, powered by **Qdarnt**. The knowledge graph consists of nodes of multimodal files (mixed together) and edges that represent the semantic meaning or the relation between the two nodes. Then they can expand the knowledge graph from the search engine, comment data points and mark them as high trust or not.. and finally run a coscientist that takes all the data of the workspace and tries to reach the objective without violating constraints. the response of the scientist is in chunks, and each chunk is commentable (explain this further, don't use this paper...) so the co scientist can built up a new response based on that. we also feature git like history for each secondary objective of the project and cover exporting research into pdf format in the template of IEEE research papers.
 
 ## Live URL (no LLM and retrieval endpoints included because of free tier limitations):
 
@@ -32,8 +32,13 @@ credentials: 123@gmail.com password: 123456
 #### Data Visualization Components
 ![Data Visualization](Screenshots/data-visualisation.png)
 *Interactive data visualization tools for exploring biological structures and relationships*
-2.  **Vector-Native:** Biological similarity (shape, function, sequence) is the core logic driver.
-3.  **Explainable:** Every suggestion provides an evidence trail (papers, similar experiments).
+
+#### Generated knowledge graph powered by Qdrant
+![Knowledge Graph](Screenshots/knowledge_graph.png)
+*Multimodel Knowledge Graph, with expalanation edges and nodes for pdfs, images, structures and sequences*
+
+
+Qdesing is  **Vector-Native:** Biological similarity (shape, function, sequence) is the core logic driver, and **Explainable:** Every retrieval and suggestion provides an evidence trail (papers, similar experiments).
 
 **Full demo video link:**
 

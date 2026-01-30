@@ -40,4 +40,3 @@ sequences/
 structures/
 
 backend/Services/**/*.json
-*.png
